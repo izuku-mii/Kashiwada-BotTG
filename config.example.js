@@ -9,14 +9,14 @@ global.wait = "Please wait..."
 global.wm = "© Ryzumi Network"
 // Message
 global.message = {
-    rowner: "Perintah ini hanya dapat digunakan oleh _*OWNER!*_",
-    owner: "Perintah ini hanya dapat digunakan oleh _*Owner Bot*_!",
-    premium: "Perintah ini hanya untuk member _*Premium*_!",
-    group: "Perintah ini hanya dapat digunakan di grup!",
-    private: "Perintah ini hanya dapat digunakan di Chat Pribadi!",
-    admin: "Perintah ini hanya dapat digunakan oleh admin grup!",
-    error: "Terjadi kesalahan, coba lagi nanti.",
-  };
+  rowner: "This command can only be used by the _*OWNER!*_",
+  owner: "This command can only be used by the _*Bot Owner*_!",
+  premium: "This command is only for _*Premium*_ members!",
+  group: "This command can only be used in groups!",
+  private: "This command can only be used in Private Chat!",
+  admin: "This command can only be used by group admins!",
+  error: "An error occurred, please try again later.",
+};
 
 // Port configuration
 global.ports = [4000, 3000, 5000, 8000];
@@ -24,25 +24,19 @@ global.ports = [4000, 3000, 5000, 8000];
 // Database configuration
 global.limit = 100;
 
-// Apikey
-// global.lann = '' 
-
-global.APIs = {   
+global.APIs = {
   //lann: 'https://api.betabotz.eu.org',
   ryzumi: 'https://api.ryzumi.vip',
 }
-global.APIKeys = { 
-  //'https://api.betabotz.eu.org': global.lann, 
+global.APIKeys = {
+  //'https://api.betabotz.eu.org': 'API_KEY', 
 }
 
-let fs = require('fs');
-let chalk = require('chalk');
+import fs from 'fs';
+import chalk from 'chalk';
 
-const file = require.resolve(__filename);
-
+const file = new URL(import.meta.url);
 fs.watchFile(file, () => {
   fs.unwatchFile(file);
   console.log(chalk.redBright(`Update 'config.js'`));
-  delete require.cache[file];
-  require(file);
 });

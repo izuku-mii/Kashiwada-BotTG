@@ -2,6 +2,7 @@
   "name": "nodejs",
   "version": "1.0.1",
   "description": "A lightweight Telegram bot framework",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

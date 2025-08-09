@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+
 const handler = async (m, { conn }) => {
   const user = global.db.data.users[m.sender]
   const isOwner = global.ownerid.includes(m.sender.toString())
@@ -17,7 +19,7 @@ const handler = async (m, { conn }) => {
   }
 
   const regDate = new Date(user.regTime)
-  const sn = require("crypto").createHash("md5").update(m.sender.toString()).digest("hex")
+  const sn = crypto.createHash("md5").update(m.sender.toString()).digest("hex")
 
   const profileText = `👤 *PROFILE INFORMATION*
 
@@ -47,4 +49,4 @@ handler.tags = ["main"]
 handler.command = /^(profile|me)$/i
 handler.register = true
 
-module.exports = handler
+export default handler

@@ -1,70 +1,65 @@
-let fetch = require('node-fetch');
-
-function escapeMarkdown(text) {
-  if (typeof text !== 'string') return text;
-  return text.replace(/([_*[\]()~`>#+=|{}.!-])/g, '\\$1');
-}
+import fetch from 'node-fetch'
 
 let handler = async (m, { text, usedPrefix, command, conn }) => {
-  if (!text) return m.reply(`Contoh:\n${usedPrefix + command} prabowo`.replace(/[\\_*[\]()~`>#+\-=|{}.!]/g, '\\$&'))
+  if (!text) {
+    return m.reply(
+      `Usage:\n${usedPrefix + command} <username>\n` +
+      `Example: ${usedPrefix + command} shirokami_ryzen\n` +
+      `Please input a username, nya~ (≧ω≦)ゞ`
+    );
+  }
 
   try {
-    let x = await fetch(`https://api.betabotz.eu.org/api/stalk/twitter?username=${text}&apikey=${lann}`);
-    let stalkx = await x.json();
+    const url = `${APIs.ryzumi}/api/stalk/twitter?username=${encodeURIComponent(text)}`;
+    const res = await fetch(url, { headers: { accept: 'application/json' } });
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
 
-    if (stalkx.status) {
-      let {
-        profileImage,
-        id,
-        bio,
-        username,
-        fullName,
-        follower,
-        following,
-        totalPosts,
-        favoritCount,
-        location,
-        createdAt
-      } = stalkx.result;
+    const data = await res.json();
 
-      let captw = `*乂 X S T A L K E R*\n\n`;
-      captw += `╭─❒ *User Info*\n`;
-      captw += `│◦ *Username* : ${escapeMarkdown(username)}\n`;
-      captw += `│◦ *Full Name* : ${escapeMarkdown(fullName)}\n`;
-      captw += `│◦ *ID* : ${escapeMarkdown(id)}\n`;
-      captw += `│◦ *Bio* : ${escapeMarkdown(bio)}\n`;
-      captw += `│◦ *Location* : ${escapeMarkdown(location)}\n`;
-      captw += `│◦ *Created At* : ${createdAt.toLocaleString()}\n`;
-      captw += `╰──────\n\n`;
-      captw += `╭─❒ *Statistics*\n`;
-      captw += `│◦ *Followers* : ${follower.toLocaleString()}\n`;
-      captw += `│◦ *Following* : ${following.toLocaleString()}\n`;
-      captw += `│◦ *Total Posts* : ${totalPosts.toLocaleString()}\n`;
-      captw += `│◦ *Favorit Count* : ${favoritCount.toLocaleString()}\n`;
-      captw += `╰──────\n\n`;
-      captw += `🔗 Profile: https://x.com/${username}`;
+    if (data?.user) {
+      const u = data.user;
+
+      let caption = `乂  X  S T A L K E R  —  P R O F I L E\n\n`;
+      caption += `╭─❒ User Info\n`;
+      caption += `│◦ Username : ${u.screen_name}\n`;
+      caption += `│◦ Full Name : ${u.name}\n`;
+      caption += `│◦ ID : ${u.id}\n`;
+      caption += `│◦ Bio : ${u.description || '-'}\n`;
+      caption += `│◦ Location : ${u.location || '-'}\n`;
+      caption += `│◦ Website : ${u.website?.display_url || '-'}\n`;
+      caption += `│◦ Joined At : ${u.joined_at}\n`;
+      caption += `╰──────\n\n`;
+      caption += `╭─❒ Statistics\n`;
+      caption += `│◦ Followers : ${u.followers}\n`;
+      caption += `│◦ Following : ${u.following}\n`;
+      caption += `│◦ Total Posts : ${u.statuses_count ?? 0}\n`;
+      caption += `│◦ Likes : ${u.likes}\n`;
+      caption += `╰──────\n\n`;
+      caption += `🔗 Profile: ${u.url}\n\n`;
+      caption += `(/ω＼) Here you go~ nya! ✨`;
 
       await conn.sendMessage(
         m.chat,
         {
-          image: { url: profileImage },
-          caption: captw,
+          image: { url: u.avatar_url },
+          caption, // no markdown escape, no parse mode
         },
-        { quoted: { message_id: m.id } }
-      )
-
+        { quoted: m }
+      );
     } else {
-      throw 'Gagal menemukan username atau sistem sedang bermasalah';
+      throw new Error('User not found or API returned empty data');
     }
   } catch (e) {
     console.error(e);
-    m.reply('Gagal menemukan username atau sistem sedang bermasalah');
+    m.reply(`Couldn’t find that username… gomen~ (╥﹏╥)\nReason: ${e?.message || e}`);
   }
 };
 
 handler.help = ['twitterstalk <username>'];
 handler.tags = ['stalk'];
 handler.command = /^(twitterstalk|twstalk|xstalk)$/i;
-handler.limit = true;
 
-module.exports = handler;
+handler.register = true
+handler.limit = true
+
+export default handler

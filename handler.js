@@ -1,7 +1,7 @@
-const fs = require("fs")
-const util = require("util")
-const chalk = require("chalk")
-const moment = require("moment-timezone")
+import fs from "fs"
+import util from "util"
+import chalk from "chalk"
+import moment from "moment-timezone"
 
 const isNumber = (x) => typeof x === "number" && !isNaN(x)
 const delay = (ms) => isNumber(ms) && new Promise((resolve) => setTimeout(resolve, ms))
@@ -25,8 +25,7 @@ async function rlimit() {
   }
 }
 
-module.exports = {
-  async handler(m) {
+export async function handler(m) {
     await global.loadDatabase()
     if (global.db.data == null) return
 
@@ -108,7 +107,8 @@ module.exports = {
         global.db.data.users[m.sender].premium
 
       try {
-        require("./lib/print")(m, this)
+        const { default: print } = await import('./lib/print.js')
+        await print(m, this)
       } catch (e) {
         console.log(m, m.quoted, e)
       }
@@ -487,9 +487,9 @@ module.exports = {
     } catch (e) {
       console.error("Handler Error:", e)
     }
-  },
+}
 
-  async participantsUpdate(ctx) {
+export async function participantsUpdate(ctx) {
     try {
       await global.loadDatabase()
 
@@ -566,8 +566,7 @@ module.exports = {
     } catch (e) {
       console.error("Error in participantsUpdate:", e)
     }
-  },
-}
+  }
 
 global.dfail = async (type, m, conn) => {
   const msg = global.message;
@@ -575,9 +574,7 @@ global.dfail = async (type, m, conn) => {
   if (msg) return await m.reply(msg)
 }
 
-const file = require.resolve(__filename)
-fs.watchFile(file, () => {
-  fs.unwatchFile(file)
+fs.watchFile(new URL(import.meta.url), () => {
+  fs.unwatchFile(new URL(import.meta.url))
   console.log(chalk.redBright("Update handler.js"))
-  delete require.cache[file]
 })

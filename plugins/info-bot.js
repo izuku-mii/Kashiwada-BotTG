@@ -37,4 +37,4 @@ handler.help = ["info", "botinfo"]
 handler.tags = ["info"]
 handler.command = /^(info|botinfo)$/i
 
-module.exports = handler
+export default handler

@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+
 const handler = async (m, { conn, text, usedPrefix, command }) => {
   const user = global.db.data.users[m.sender]
 
@@ -20,7 +22,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   user.registered = true
   user.regTime = +new Date()
 
-  const sn = require("crypto").createHash("md5").update(m.sender.toString()).digest("hex")
+  const sn = crypto.createHash("md5").update(m.sender.toString()).digest("hex")
 
   const caption = `
 ┌─〔 INFO PENGGUNA 〕
@@ -40,4 +42,4 @@ handler.help = ["daftar <nama>.<umur>"]
 handler.tags = ["main"]
 handler.command = /^(daftar|register)$/i
 
-module.exports = handler
+export default handler

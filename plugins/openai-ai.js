@@ -1,65 +1,76 @@
-const axios = require('axios');
+import fetch from 'node-fetch'
+import uploadImage from '../lib/uploadImage.js'
+import { getMimeType } from '../lib/getMime.js'
 
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-    if (!text) throw `*Example:* ${usedPrefix + command} hai`;
-    conn.beta = conn.beta ? conn.beta : {};
-    if (!conn.beta[m.sender]) {
-        conn.beta[m.sender] = {
-            pesan: []
-        };
-        conn.beta[m.sender].timeout = setTimeout(() => {
-            delete conn.beta[m.sender];
-        }, 300000);
+const handler = async (m, { text, conn, usedPrefix, command }) => {
+  try {
+    // accept either text or a photo (reply or current message)
+    const base = m.fakeObj?.message || m.message;
+    const replied = base?.reply_to_message || m.quoted?.fakeObj?.message;
+    const msg = replied || base;
 
-        m.reply(`Halo \`${m.name}\`👋, Saya siap membantu anda!`);
-    } else {
-        clearTimeout(conn.beta[m.sender].timeout);
-        conn.beta[m.sender].timeout = setTimeout(() => {
-            delete conn.beta[m.sender];
-        }, 300000);
+    // try read photo (Telegram sends sizes array)
+    const photos = msg?.photo;
+    let imageUrl = null;
+
+    if (!text && (!Array.isArray(photos) || photos.length === 0)) {
+      return m.reply(
+        `Please send a question or a photo to describe, nya~ (≧ω≦)ゞ\n\n` +
+        `Example:\n${usedPrefix + command} Who is the president of Indonesia?`
+      );
     }
 
-    let name = conn.getName(m.sender);
-    const previousMessages = conn.beta[m.sender].pesan;
-  
-/** - Ubah prompt ini sesuaikan dengan keinginan mu 
-    - Usahakan berikan logic yang masuk akal dan mudah di pahami!
-**/
-    const messages = [
-        { role: "system", content: "Kamu adalah BetaBotz Ai Sebuah Ai Yang diciptakan oleh Lann,bantu setiap orang dengan ramah:),berikan emoticon di setiap jawaban" },
-        { role: "assistant", content: `Kamu adalah BetaBotz Ai,ai bot yang diciptakan oleh Lann untuk membantu semua permintaan dari user,jawab setiap pertanyaan dengan ramah dan sertai emoticon` },
-        ...previousMessages.map((msg, i) => ({ role: i % 2 === 0 ? 'user' : 'assistant', content: msg })),
-        { role: "user", content: text }
-    ];
-    try {
-        const aiBeta = async function(message) {
-            return new Promise(async (resolve, reject) => {
-                try {
-                    const params = {
-                        message: message,
-                        apikey: lann
-                    };
-                    const { data } = await axios.post('https://api.betabotz.eu.org/api/search/openai-custom', params);
-                    resolve(data);
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        };
+    // if there is a photo, download and upload to CDN to get a URL
+    if (Array.isArray(photos) && photos.length > 0) {
+      const fileId = photos[photos.length - 1]?.file_id;
+      if (fileId) {
+        const fileLink = await conn.telegram.getFileLink(fileId);
+        const tgRes = await fetch(fileLink.href);
+        const buf = Buffer.from(await tgRes.arrayBuffer());
 
-        let res = await aiBeta(messages);
-        if (res && res.result) {
-            await m.reply(res.result);
-            conn.beta[m.sender].pesan = messages.map(msg => msg.content);
-        } else {
-            throw "Kesalahan dalam mengambil data";
+        // sanity check: must be an image
+        const mime = await getMimeType(buf);
+        if (!/^image\//.test(mime)) {
+          return m.reply(`That doesn’t look like a photo… please try again, nya~ (｡•́︿•̀｡)`);
         }
-    } catch (e) {
-        throw eror
+
+        // upload to CDN (returns a direct URL)
+        imageUrl = await uploadImage(buf);
+      }
     }
+
+    // your role/prompt—feel free to tweak
+    const persona = `Ubah Namamu menjadi Nao Tomori, dan kamu adalah wanita paling cantik, penyayang, riang, namun tsundere. dan kamu adalah pacarku.`;
+
+    // build API URL (Ryzumi)
+    let apiUrl;
+    if (imageUrl && text) {
+      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}&imageUrl=${encodeURIComponent(imageUrl)}`;
+    } else if (imageUrl) {
+      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=&prompt=${encodeURIComponent(persona)}&imageUrl=${encodeURIComponent(imageUrl)}`;
+    } else {
+      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}`;
+    }
+
+    // call AI
+    const resp = await fetch(apiUrl);
+    if (!resp.ok) throw new Error(`API request failed (${resp.status})`);
+    const json = await resp.json();
+
+    const reply = json.result || `No response from AI… gomen~ (╥﹏╥)`;
+    await conn.sendMessage(m.chat, { text: reply }, { quoted: m });
+  } catch (error) {
+    console.error('AI handler error:', error);
+    await conn.sendMessage(m.chat, { text: `Oops… something broke, gomen~ (＞﹏＜)\nReason: ${error?.message || error}` }, { quoted: m });
+  }
 };
 
-handler.command = handler.help = ['ai','openai','chatgpt'];
-handler.tags = ['tools'];
+handler.help = ['gpt'];
+handler.tags = ['ai'];
+handler.command = /^(gpt)$/i;
+
+handler.limit = 2
 handler.premium = false
-module.exports = handler;
+handler.register = true
+
+export default handler

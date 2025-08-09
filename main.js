@@ -1,15 +1,19 @@
-require('./config')
-const fs = require('fs')
-const path = require('path')
-const chalk = require('chalk')
-const { Telegraf } = require('telegraf')
+import './config.js'
+import fs from 'fs'
+import path from 'path'
+import chalk from 'chalk'
+import { Telegraf } from 'telegraf'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 // Database (lowdb lite bundled in lib/lowdb)
-const { Low, JSONFile } = require('./lib/lowdb')
+import { Low, JSONFile } from './lib/lowdb/index.js'
 
 // Core handler and helpers
-const Core = require('./handler')
-const attachSimpleHelpers = require('./lib/simple')
+import * as Core from './handler.js'
+import attachSimpleHelpers from './lib/simple.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // ---- Basic guards
 if (!global.token || String(global.token).trim().length === 0) {
@@ -76,15 +80,15 @@ setInterval(() => saveDatabase().catch(() => {}), 15_000)
 const pluginsDir = path.join(__dirname, 'plugins')
 global.plugins = {}
 
-function loadPlugins() {
+async function loadPlugins() {
 	const list = fs.readdirSync(pluginsDir).filter(f => f.endsWith('.js'))
 	const newMap = {}
 	for (const file of list) {
 		try {
 			const full = path.join(pluginsDir, file)
-			delete require.cache[require.resolve(full)]
-			const mod = require(full)
-			newMap[file] = mod
+			const fileUrl = pathToFileURL(full).href + `?v=${Date.now()}`
+			const mod = await import(fileUrl)
+			newMap[file] = mod.default || mod
 		} catch (e) {
 			console.error(`Failed loading plugin ${file}:`, e.message)
 		}
@@ -95,9 +99,9 @@ function loadPlugins() {
 
 // Watch plugins for hot-reload (best-effort)
 try {
-	fs.watch(pluginsDir, { persistent: false }, (event, filename) => {
+	fs.watch(pluginsDir, { persistent: false }, async (event, filename) => {
 		if (!filename || !filename.endsWith('.js')) return
-		try { loadPlugins() } catch { }
+		try { await loadPlugins() } catch {}
 	})
 } catch {}
 
@@ -229,7 +233,7 @@ bot.on('chat_member', async (ctx) => {
 ;(async () => {
 	try {
 		await loadDatabase()
-		loadPlugins()
+	await loadPlugins()
 		await refreshBotInfo()
 		await bot.launch()
 		console.log(chalk.cyan(`\u2705 ${global.botname || 'Bot'} is up and running as @${conn.botInfo?.username || 'unknown'}`))
@@ -244,9 +248,8 @@ process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
 
 // Hot-reload support
-const thisFile = require.resolve(__filename)
-fs.watchFile(thisFile, () => {
-	fs.unwatchFile(thisFile)
+fs.watchFile(__filename, () => {
+	fs.unwatchFile(__filename)
 	console.log(chalk.redBright('Update main.js'))
 })
 

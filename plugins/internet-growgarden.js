@@ -1,88 +1,92 @@
-let fetch = require('node-fetch');
+import fetch from 'node-fetch'
+import moment from 'moment-timezone'
 
-let handler = async (m, { usedPrefix, command, text }) => {
+let handler = async (m) => {
     try {
-        if (command === 'growgarden' && !text) {
-            m.reply(`Please specify a subcommand: \`stock\` or \`weather\`\nExample: \`${usedPrefix + command} stock\` or \`${usedPrefix + command} weather\``);
-            return;
+        m.reply(wait)
+
+        // Fetch data
+        let res = await (await fetch(`${APIs.ryzumi}/api/tool/growagarden`)).json()
+        if (!res.data) return m.reply('Failed to fetch data.')
+
+        let garden = res.data
+        let content = `*🌱 GROW A GARDEN STOCKS + WEATHER 🌱*\n\n`
+
+        const formatItem = (item) => {
+            let time = moment(item.lastUpdated).tz('Asia/Jakarta').format('DD MMM YYYY, HH:mm:ss') + ' WIB'
+            return `  ◦ ${item.name} (${item.quantity}) ${item.available ? '✅' : '❌'}\n    Updated: ${time}\n`
         }
-        m.reply(wait);
-        if (text.toLowerCase() === 'stock') {
-            let res = await (await fetch(`https://api.betabotz.eu.org/api/webzone/grow-and-garden-stock?apikey=${global.lann}`)).json();
-            let content = `*🌱 G R O W  &  G A R D E N  S T O C K S 🌱*\n\n`;
 
-            if (res.status && res.result) {
-                content += `*🌾 Seeds Stocks:*\n`;
-                res.result.seeds.items.forEach(item => {
-                    content += `  ◦ ${item}\n`;
-                });
-                content += `  *Last Update*: ${res.result.seeds.lastUpdate}\n`;
-
-                content += `\n*🛠️ Gear Stocks:*\n`;
-                res.result.gears.items.forEach(item => {
-                    content += `  ◦ ${item}\n`;
-                });
-                content += `  *Last Update*: ${res.result.gears.lastUpdate}\n`;
-
-                content += `\n*🥚 Egg Stocks:*\n`;
-                res.result.eggs.items.forEach(item => {
-                    content += `  ◦ ${item}\n`;
-                });
-                content += `  *Last Update*: ${res.result.eggs.lastUpdate}\n`;
-
-                content += `\n*🎨 Cosmetic Stocks:*\n`;
-                res.result.cosmetic.items.forEach(item => {
-                    content += `  ◦ ${item}\n`;
-                });
-                content += `  *Last Update*: ${res.result.cosmetic.lastUpdate}\n`;
-
-                content += `\n*☀️ Summer Stocks:*\n`;
-                res.result.summer.items.forEach(item => {
-                    content += `  ◦ ${item}\n`;
-                });
-                content += `  *Last Update*: ${res.result.summer.lastUpdate}\n`;
-
-                content += `\n*🛒 Merchant Stocks:*\n`;
-                res.result.merchant.items.forEach(item => {
-                    content += `  ◦ ${item}\n`;
-                });
-                content += `  *Last Update*: ${res.result.merchant.lastUpdate}\n`;
-            } else {
-                content += 'Data stok tidak ditemukan.';
-                // content += 'Data stok tidak ditemukan.';
-            }
-            console.log(res);
-            await m.reply(content);
-        } else if (text.toLowerCase() === 'weather') {
-            let res = await (await fetch(`https://api.betabotz.eu.org/api/webzone/grow-and-garden-weather?apikey=${global.lann}`)).json();
-            let content = `*🌦️ G R O W  &  G A R D E N  W E A T H E R 🌦️*\n\n`;
-
-            if (res.status && res.result) {
-                content += `📌 *Current Weather*:\n${res.result.result}\n`;
-                content += `⏰ *Ends*: ${res.result.endsStatus}\n`;
-                content += `📅 *Last Update*: ${res.result.lastUpdate}\n\n`;
-
-                content += `*📜 Weather History (Last 5):*\n`;
-                res.result.history.slice(0, 5).forEach(item => {
-                    content += `  ◦ ${item.description}\n`;
-                    content += `    *Ends*: ${item.endsStatus}\n`;
-                    content += `    *Time*: ${item.time}\n\n`;
-                });
-            } else {
-                content += 'Data cuaca tidak ditemukan.';
-            }
-            await m.reply(content);
+        // Seeds
+        if (garden.seeds?.length) {
+            content += `*🌾 Seeds:*\n`
+            garden.seeds.forEach(i => content += formatItem(i))
+            content += '\n'
         }
-        else {
-            m.reply(`Please specify a subcommand: \`stock\` or \`weather\`\nExample: \`${usedPrefix + command} stock\` or \`${usedPrefix + command} weather\``);
-            return;
+
+        // Gear
+        if (garden.gear?.length) {
+            content += `*🛠️ Gear:*\n`
+            garden.gear.forEach(i => content += formatItem(i))
+            content += '\n'
         }
-    } catch (error) {
-        throw eror
+
+        // Eggs
+        if (garden.eggs?.length) {
+            content += `*🥚 Eggs:*\n`
+            garden.eggs.forEach(i => content += formatItem(i))
+            content += '\n'
+        }
+
+        // Cosmetics
+        if (garden.cosmetics?.length) {
+            content += `*🎨 Cosmetics:*\n`
+            garden.cosmetics.forEach(i => content += formatItem(i))
+            content += '\n'
+        }
+
+        // Honey Items
+        if (garden.honey?.length) {
+            content += `*🍯 Honey Items:*\n`
+            garden.honey.forEach(i => content += formatItem(i))
+            content += '\n'
+        }
+
+        // Events
+        if (garden.events?.length) {
+            content += `*🎉 Events:*\n`
+            garden.events.forEach(i => content += formatItem(i))
+            content += '\n'
+        }
+
+        // Weather Now
+        if (garden.weather) {
+            let w = garden.weather
+            let lastUpdate = moment(w.lastUpdated).tz('Asia/Jakarta').format('DD MMM YYYY, HH:mm:ss') + ' WIB'
+            content += `*🌦️ Current Weather:* ${w.type.toUpperCase()}\n`
+            w.effects.forEach(e => content += `  - ${e}\n`)
+            content += `Last Update: ${lastUpdate}\n\n`
+        }
+
+        // Weather History
+        if (garden.weatherHistory?.length) {
+            content += `*📜 Weather History:*\n`
+            garden.weatherHistory.forEach(h => {
+                let start = moment(h.startTime).tz('Asia/Jakarta').format('DD MMM YYYY, HH:mm:ss') + ' WIB'
+                let end = moment(h.endTime).tz('Asia/Jakarta').format('DD MMM YYYY, HH:mm:ss') + ' WIB'
+                content += `  ◦ ${h.type.charAt(0).toUpperCase() + h.type.slice(1)} — ${start} → ${end}\n`
+            })
+        }
+
+        await m.reply(content.trim())
+    } catch (err) {
+        m.reply(`❌ Error: ${err.message}`)
     }
-};
+}
 
-handler.command = ['growgarden'];
-handler.tags = ['internet'];
-handler.limit = 1;
-module.exports = handler;
+handler.help = ['growgarden']
+handler.command = ['growgarden', 'gag']
+handler.tags = ['internet']
+handler.limit = 1
+
+export default handler

@@ -1,26 +1,33 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs"
+import path from "path"
+import { pathToFileURL, fileURLToPath } from "url"
+
+// Recreate __filename/__dirname in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let loadedCategories = {};
 let totalLoadedCommands = 0;
 
-const loadBotPlugins = () => {
+const loadBotPlugins = async () => {
   const pluginDir = path.join(__dirname);
   const plugins = [];
   const categories = {};
   let totalCommands = 0;
 
-  fs.readdirSync(pluginDir).forEach((file) => {
-    if (file.endsWith(".js") && file !== "menu.js") {
+  const files = fs.readdirSync(pluginDir)
+  for (const file of files) {
+    if (file.endsWith('.js') && file !== 'menu.js') {
       try {
-        delete require.cache[require.resolve(path.join(pluginDir, file))];
-        const plugin = require(path.join(pluginDir, file));
-        if (plugin.help && plugin.tags) plugins.push(plugin);
+        const full = path.join(pluginDir, file)
+        const mod = await import(pathToFileURL(full).href + `?v=${Date.now()}`)
+        const plugin = mod.default || mod
+        if (plugin.help && plugin.tags) plugins.push(plugin)
       } catch (e) {
-        console.error(`Error loading ${file}:`, e);
+        console.error(`Error loading ${file}:`, e)
       }
     }
-  });
+  }
 
   plugins.forEach((plugin) => {
     if (plugin.tags && plugin.help) {
@@ -40,7 +47,7 @@ const loadBotPlugins = () => {
   totalLoadedCommands = totalCommands;
 };
 
-loadBotPlugins();
+await loadBotPlugins();
 
 const categoryNames = {
   main: "🎯 MAIN",
@@ -72,7 +79,7 @@ const handler = async (m, { conn, args }) => {
   let time = d.toLocaleTimeString(locale, { hour: 'numeric', minute: 'numeric' });
   let uptime = clockString(process.uptime() * 1000);
 
-  const menuImage = "https://lann.pw/get-upload?id=uploader-api-1:1752838394888.jpg";
+  const menuImage = "https://telegra.ph/file/14a7745f434cd21e900d6.jpg";
 
   if (args[0]) {
     const categoryArg = args[0].toLowerCase();
@@ -154,4 +161,4 @@ function clockString(ms) {
   return [h, m, s].map(v => v.toString().padStart(2, 0)).join(':');
 }
 
-module.exports = handler;
+export default handler

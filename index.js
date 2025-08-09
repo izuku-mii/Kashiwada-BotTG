@@ -1,10 +1,14 @@
-require("./config")
-const cluster = require('cluster');
-const { spawn } = require('child_process');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
-const express = require('express');
+import "./config.js";
+import cluster from 'cluster';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
+import express from 'express';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const ports = global.ports
 let availablePortIndex = 0;
@@ -96,11 +100,11 @@ function start(file) {
     fs.watchFile(args[0], () => {
       fs.unwatchFile(args[0]);
       console.error('\x1b[31m%s\x1b[0m', `File ${args[0]} has been modified. Script will restart...`);
-      start("main.js");
+  start("main.js");
     });
 
     setTimeout(() => {
-      start('main.js');
+  start('main.js');
     }, 1000);
   });
 
@@ -110,15 +114,15 @@ function start(file) {
     isRunning = false;
     console.error('\x1b[31m%s\x1b[0m', `Error occurred. Script will restart...`);
     setTimeout(() => {
-      start("main.js");
+  start("main.js");
     }, 1000);
   });
 
   const pluginsFolder = path.join(__dirname, "plugins");
 
   try {
-    const telegrafPackagePath = path.join(__dirname, 'node_modules', 'telegraf', 'package.json');
-    const packageData = JSON.parse(fs.readFileSync(telegrafPackagePath, 'utf8'));
+  const telegrafPackagePath = path.join(__dirname, 'node_modules', 'telegraf', 'package.json');
+  const packageData = JSON.parse(fs.readFileSync(telegrafPackagePath, 'utf8'));
     version = packageData.version;
   } catch (e) {
     console.error('\x1b[31m%s\x1b[0m', `❌ Telegraf library is not installed. Please run: npm install telegraf`);

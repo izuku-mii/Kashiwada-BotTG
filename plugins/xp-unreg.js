@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+
 const handler = async (m, { conn, text }) => {
   const user = global.db.data.users[m.sender]
 
@@ -5,7 +7,7 @@ const handler = async (m, { conn, text }) => {
 
   if (!text) return m.reply(`Serial Number tidak ditemukan!\n\nCara menggunakan:\n*/unreg <SERIAL NUMBER>*`)
 
-  const sn = require("crypto").createHash("md5").update(m.sender.toString()).digest("hex")
+  const sn = crypto.createHash("md5").update(m.sender.toString()).digest("hex")
 
   if (text !== sn) return m.reply(`Serial Number salah!\n\nSerial Number anda: ${sn}`)
 
@@ -24,4 +26,4 @@ handler.tags = ["main"]
 handler.command = /^(unreg|unregister)$/i
 handler.register = true
 
-module.exports = handler
+export default handler

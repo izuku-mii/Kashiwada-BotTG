@@ -43,4 +43,4 @@ handler.help = ['limit', 'checklimit', 'ceklimit']
 handler.tags = ['xp']
 handler.command = ['limit', 'checklimit', 'ceklimit']
 
-module.exports = handler
+export default handler

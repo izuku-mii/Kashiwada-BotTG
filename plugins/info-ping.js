@@ -1,9 +1,8 @@
-const { totalmem, freemem } = require('os');
-const os = require('os');
-const util = require('util');
-const osu = require('node-os-utils');
-const { performance } = require('perf_hooks');
-const { sizeFormatter } = require('human-readable');
+import { totalmem, freemem } from 'os'
+import os from 'os'
+import osu from 'node-os-utils'
+import { performance } from 'perf_hooks'
+import { sizeFormatter } from 'human-readable'
 
 const format = sizeFormatter({
   std: 'JEDEC',
@@ -49,63 +48,57 @@ const handler = async (m, { conn }) => {
   }
   const muptime = clockString(_muptime);
 
-  const old = performance.now();
-  const neww = performance.now();
-  const speed = neww - old;
+  // Real ping measurement
+  const startPing = Date.now();
+  await m.reply('_Pinging..._');
+  const ping = Date.now() - startPing;
+
+  // Speed test (internal execution time)
+  const startPerf = performance.now();
+  const endPerf = performance.now();
+  const speed = endPerf - startPerf;
 
   const cpux = osu.cpu;
-  const cpuCore = cpux.count();
-  const drive = osu.drive;
-  const mem = osu.mem;
-  const netstat = osu.netstat;
-  const HostN = osu.os.hostname();
   const OS = osu.os.platform();
-  const cpuModel = cpux.model();
 
-  const d = new Date(Date.now() + 3600000); // +1 jam
-  const locale = 'id';
-  const weeks = d.toLocaleDateString(locale, { weekday: 'long' });
-  const dates = d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
-  const times = d.toLocaleTimeString(locale, { hour: 'numeric', minute: 'numeric', second: 'numeric' });
-
-  await m.reply('_Testing speed..._');
+  const times = new Date(Date.now()).toLocaleTimeString('en', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
 
   const txt = `
-ᴘ ɪ ɴ ɢ
-${Math.round(neww - old)} ms
-${speed.toFixed(2)} ms
+PING
+${ping} ms (round trip)
+${speed.toFixed(2)} ms (execution)
 
-ʀ ᴜ ɴ ᴛ ɪ ᴍ ᴇ 
+UPTIME
 ${muptime}
 
-s ᴇ ʀ ᴠ ᴇ ʀ
-🛑 ʀᴀᴍ: ${format(totalmem() - freemem())} / ${format(totalmem())}
-🔵 ғʀᴇᴇRAM: ${format(freemem())}
-🔴 ᴍᴇᴍᴏʀy: ${(used.heapUsed / 1024 / 1024).toFixed(2)} MB / ${Math.round(totalmem() / 1024 / 1024)} MB
-🔭 ᴘʟᴀᴛғᴏʀᴍ: ${os.platform()}
-🧿 sᴇʀᴠᴇʀ: ${os.hostname()}
-💻 ᴏs: ${OS}
-⏰ ᴛɪᴍᴇ sᴇʀᴠᴇʀ: ${times}
+SERVER INFO
+RAM Used: ${format(totalmem() - freemem())} / ${format(totalmem())}
+Free RAM: ${format(freemem())}
+Memory Usage: ${(used.heapUsed / 1024 / 1024).toFixed(2)} MB / ${Math.round(totalmem() / 1024 / 1024)} MB
+Platform: ${os.platform()}
+Hostname: ${os.hostname()}
+OS: ${OS}
+Server Time: ${times}
 
-_NodeJS Memory Usage_
+NodeJS Memory Usage
 \`\`\`
 ${Object.keys(used)
-  .map(key => `${key.padEnd(15)}: ${format(used[key])}`)
-  .join('\n')}
+      .map(key => `${key.padEnd(15)}: ${format(used[key])}`)
+      .join('\n')}
 \`\`\`
 
 ${cpus[0] ? `_Total CPU Usage_
 ${cpus[0].model.trim()} (${cpu.speed.toFixed(2)} MHz)
 ${Object.keys(cpu.times)
-  .map(type => `- ${type.padEnd(6)}: ${(100 * cpu.times[type] / cpu.total).toFixed(2)}%`)
-  .join('\n')}
+        .map(type => `- ${type.padEnd(6)}: ${(100 * cpu.times[type] / cpu.total).toFixed(2)}%`)
+        .join('\n')}
 
-_CPU Core(s) Usage (${cpus.length} Core CPU)_
-${cpus.map((cpu, i) => 
-  `${i + 1}. ${cpu.model.trim()} (${cpu.speed} MHz)
+_CPU Core(s) Usage (${cpus.length} Cores)_
+${cpus.map((cpu, i) =>
+          `${i + 1}. ${cpu.model.trim()} (${cpu.speed} MHz)
 ${Object.keys(cpu.times)
-  .map(type => `- ${type.padEnd(6)}: ${(100 * cpu.times[type] / cpu.total).toFixed(2)}%`)
-  .join('\n')}`).join('\n\n')}
+            .map(type => `- ${type.padEnd(6)}: ${(100 * cpu.times[type] / cpu.total).toFixed(2)}%`)
+            .join('\n')}`).join('\n\n')}
 ` : ""}
   `.trim();
 
@@ -114,8 +107,8 @@ ${Object.keys(cpu.times)
 
 handler.help = ['ping', 'speed'];
 handler.tags = ['info'];
-handler.command = /^(ping|speed|pong|ingfo)$/i;
-module.exports = handler;
+handler.command = /^(ping|speed|pong|info)$/i;
+export default handler;
 
 function clockString(ms) {
   const d = isNaN(ms) ? '--' : Math.floor(ms / 86400000);

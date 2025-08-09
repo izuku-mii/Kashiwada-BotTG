@@ -1,5 +1,5 @@
-let syntaxerror = require('syntax-error')
-let util = require('util')
+import syntaxerror from 'syntax-error'
+import util from 'util'
 
 function escapeMarkdown(text) {
   return text.toString()
@@ -97,7 +97,7 @@ handler.customPrefix = /^=?> /
 handler.command = /(?:)/i
 handler.owner = true
 
-module.exports = handler
+export default handler
 
 class CustomArray extends Array {
   constructor(...args) {

@@ -1,29 +1,64 @@
-const uploadFile = require('../lib/uploadFile')
-const uploadImage = require('../lib/uploadImage')
-const { getMimeType } = require('../lib/getMime');
+import uploadFile from '../lib/uploadFile.js'
+import uploadImage from '../lib/uploadImage.js'
+import { getMimeType } from '../lib/getMime.js'
+import fetch from 'node-fetch'
 
-let handler = async (m) => {
-    let q = m.quoted ? m.quoted : m
-    try {
-        if (!q) throw 'Tidak ada media yang ditemukan'
-        let media = await q.download()
-        let mime = await getMimeType(await q.download());
-        let isTele = /image\/(png|jpe?g|gif)|video\/mp4/.test(mime)
-        let fileSizeLimit = 5 * 1024 * 1024
-        if (media.length > fileSizeLimit) {
-            throw 'Ukuran media tidak boleh melebihi 5MB'
-        }
-        let link = await (isTele ? uploadImage : uploadFile)(media)
-        m.reply(`${link}
-${media.length} Byte(s)
-${isTele ? '(Tidak Ada Tanggal Kedaluwarsa)' : '(Expired 24 hours)'}`)
-    } catch (e) {
-        console.error(e)
-        m.reply('Gagal mengunggah media. Pastikan media yang dikirim adalah gambar atau video ataupun audio.')
-    }
-}
-handler.help = ['tourl <reply image>']
-handler.tags = ['sticker']
-handler.command = /^(upload|tourl)$/i
+let handler = async (m, { conn }) => {
+  try {
+    // Get message object (prioritize reply if exists)
+    const base = m.fakeObj?.message || m.message;
+    const replied = base?.reply_to_message || m.quoted?.fakeObj?.message;
+    const msg = replied || base;
+    if (!msg) throw 'No media found (｡•́︿•̀｡)';
 
-module.exports = handler
+    // Get media candidates
+    const photo = (replied?.photo || msg.photo);
+    const video = (replied?.video || msg.video);
+    const audio = (replied?.audio || msg.audio);
+    const doc   = (replied?.document || msg.document);
+
+    // Get file_id (for photos, use the largest size)
+    const fileId =
+      (Array.isArray(photo) ? photo[photo.length - 1]?.file_id : undefined) ||
+      video?.file_id ||
+      audio?.file_id ||
+      doc?.file_id;
+
+    if (!fileId) throw 'No media found (つ﹏<)･ﾟ｡';
+
+    // Get Telegram file link
+    const fileLink = await conn.telegram.getFileLink(fileId);
+
+    // Download to buffer
+    const res = await fetch(fileLink.href);
+    const media = Buffer.from(await res.arrayBuffer());
+
+    // Detect MIME
+    const mime = await getMimeType(media);
+
+    // Decide uploader type
+    const isImageOrVideo = /^(image\/(png|jpe?g|gif)|video\/mp4)$/.test(mime);
+
+    // Upload to CDN
+    const link = await (isImageOrVideo ? uploadImage : uploadFile)(media);
+
+    // Reply with result (cute style)
+    m.reply(
+`✨ Upload complete~ \(≧▽≦)/  
+📎 *Link:* ${link}  
+📏 *Size:* ${media.length} Byte(s)  
+⏳ *Expires:* ${isImageOrVideo ? 'No expiration date~ (＾▽＾)' : '24 hours only! (＞﹏＜)'}`
+    );
+
+  } catch (e) {
+    m.reply(`Upload failed... gomen~ (╥﹏╥) \nReason: ${e?.message || e}`);
+  }
+};
+
+handler.help = ['tourl <reply image/video/audio>'];
+handler.tags = ['tools'];
+handler.command = /^(upload|tourl)$/i;
+
+handler.register = true
+
+export default handler
