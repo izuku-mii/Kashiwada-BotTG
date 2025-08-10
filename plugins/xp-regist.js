@@ -41,8 +41,8 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     `├ SN: ${sn}`,
     '└────',
     '',
-    'Yay~! You are now successfully registered! (ﾉ^▽^)ﾉ*: ･ﾟ',
-    'Type */menu* to see all available commands ✧(＾▽＾)'
+    'Yay~! You are now successfully registered! (ﾉ^▽^)ﾉ✧ ･ﾟ',
+    'Type */menu* to see all available commands (＾▽＾)'
   ].join('\n')
 
   try {

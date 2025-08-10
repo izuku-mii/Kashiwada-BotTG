@@ -46,8 +46,6 @@ const handler = async (m, { text, conn, usedPrefix, command }) => {
     let apiUrl;
     if (imageUrl && text) {
       apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}&imageUrl=${encodeURIComponent(imageUrl)}`;
-    } else if (imageUrl) {
-      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=&prompt=${encodeURIComponent(persona)}&imageUrl=${encodeURIComponent(imageUrl)}`;
     } else {
       apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}`;
     }
