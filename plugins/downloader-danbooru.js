@@ -22,9 +22,12 @@ function getDisplayName(m, conn) {
 	return 'nya~';
 }
 
-// Escape MarkdownV2
-const tgEscape = (s = '') =>
+// Escape text (MarkdownV2)
+const tgEscapeText = (s = '') =>
 	String(s).replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1')
+
+const tgEscapeUrl = (s = '') =>
+	String(s).replace(/[\(\)\\]/g, '\\$&')
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
 	if (!args[0]) {
@@ -37,7 +40,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 	let fileUrl;
 
 	try {
-		await m.reply(wait);
+		await m.reply(typeof wait !== 'undefined' ? wait : 'Please wait...');
 
 		const url = args[0];
 		const api = `${APIs.ryzumi}/api/downloader/danbooru?url=${encodeURIComponent(url)}`;
@@ -49,19 +52,25 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 		if (!fileUrl || typeof fileUrl !== 'string') throw new Error('No downloadable media found');
 
 		const uname = getDisplayName(m, conn);
-		const captionLines = [
-			`Here's your Danbooru media, ${uname} ~ ✨`,
+
+		const sourceUrlRaw = data?.Source
+			? (data.Source.startsWith('http') ? data.Source : `https://${data.Source}`)
+			: null;
+
+		const lines = [
+			`Here's your Danbooru media, ${tgEscapeText(uname)} ~ ✨`,
 			'',
-			data?.ID ? `• ID: ${data.ID}` : null,
-			data?.Uploader ? `• Uploader: ${data.Uploader}` : null,
-			data?.Rating ? `• Rating: ${data.Rating}` : null,
-			data?.Score ? `• Score: ${data.Score}` : null,
-			data?.Favorites ? `• Favorites: ${data.Favorites}` : null,
-			data?.Size ? `• Size: ${data.Size}` : null,
-			data?.Status ? `• Status: ${data.Status}` : null,
-			data?.Source ? `• Source: ${data.Source}` : null
+			data?.ID && `• ID: ${tgEscapeText(data.ID)}`,
+			data?.Uploader && `• Uploader: ${tgEscapeText(data.Uploader)}`,
+			data?.Rating && `• Rating: ${tgEscapeText(data.Rating)}`,
+			data?.Score && `• Score: ${tgEscapeText(data.Score)}`,
+			data?.Favorites && `• Favorites: ${tgEscapeText(data.Favorites)}`,
+			data?.Size && `• Size: ${tgEscapeText(data.Size)}`,
+			data?.Status && `• Status: ${tgEscapeText(data.Status)}`,
+			sourceUrlRaw && `• Source: [${tgEscapeText(data.Source)}](${tgEscapeUrl(sourceUrlRaw)})`
 		].filter(Boolean);
-		const caption = tgEscape(captionLines.join('\n'));
+
+		const caption = lines.join('\n');
 
 		const isVideo = /\.(mp4|webm|mkv|mov)(\?|#|$)/i.test(fileUrl);
 
@@ -86,10 +95,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
 	} catch (e) {
 		let errMsg = `An error occurred: ${e?.message || e}`;
-		if (typeof fileUrl === 'string') {
-			errMsg += `\nURL: ${fileUrl}`;
-		}
-		await conn.reply(m.chat, tgEscape(errMsg), m);
+		if (typeof fileUrl === 'string') errMsg += `\nURL: ${fileUrl}`;
+		await conn.reply(m.chat, tgEscapeText(errMsg), m);
 	}
 };
 

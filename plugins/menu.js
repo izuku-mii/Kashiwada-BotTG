@@ -53,7 +53,7 @@ const categoryNames = {
   main: "🎯 MAIN",
   tools: "⚙️ TOOLS",
   downloader: "💫 DOWNLOADER",
-  fun: "🎪 FUN",
+  // fun: "🎪 FUN",
   group: "👾 GROUP",
   owner: "👤 OWNER",
   admin: "🛡️ ADMIN",
@@ -74,7 +74,7 @@ const handler = async (m, { conn, args }) => {
   const isPrems = global.premid.includes(m.sender.toString()) || user.premium || (user.premiumTime > Date.now());
 
   let d = new Date();
-  let locale = 'id';
+  let locale = 'en';
   let date = d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
   let time = d.toLocaleTimeString(locale, { hour: 'numeric', minute: 'numeric' });
   let uptime = clockString(process.uptime() * 1000);
@@ -86,7 +86,7 @@ const handler = async (m, { conn, args }) => {
     const foundCategory = Object.keys(loadedCategories).find(cat => cat.toLowerCase() === categoryArg);
 
     if (foundCategory) {
-      const categoryDisplayName = categoryNames[foundCategory] || foundCategory.toUpperCase();
+      const categoryDisplayName = categoryNames[foundCategory] || `${foundCategory.toUpperCase()} (✿^‿^)`;
       let categoryMenuText = menuTemplate.header.replace(/%category/g, categoryDisplayName) + '\n';
 
       loadedCategories[foundCategory].forEach(cmd => {
@@ -97,22 +97,27 @@ const handler = async (m, { conn, args }) => {
       });
 
       categoryMenuText += menuTemplate.footer;
-      categoryMenuText += '\n*Note:* Kembali ke menu utama dengan */menu*';
+      categoryMenuText += '\n*Note:* Back to the main menu with */menu* (o^▽^o)';
 
       return conn.sendMessage(m.chat, {
         image: { url: menuImage },
         caption: categoryMenuText,
         parse_mode: 'Markdown'
-          }, { quoted: { message_id: m.id } })
+      }, { quoted: { message_id: m.id } })
     } else {
       return conn.sendMessage(m.chat, {
-        text: `Kategori *"${args[0]}"* tidak ditemukan.\n\nKetik */menu* untuk melihat daftar kategori yang tersedia.`,
+        text: `Category *"${args[0]}"* not found (｡•́︿•̀｡)\n\nType */menu* to see available categories.`,
         parse_mode: 'Markdown'
-          }, { quoted: { message_id: m.id } })
+      }, { quoted: { message_id: m.id } })
     }
   }
 
-  let mainMenuText = `*${global.botname}*\n\nHi %name!\nI'm a Telegram Bot that can help you with various tasks.\n\n◦ *Uptime:* %uptime\n◦ *Date:* %date\n◦ *Time:* %time WIB\n\n`;
+  let mainMenuText =
+    `*${global.botname}*\n\n` +
+    `Hi %name! (｡•‿•｡)ﾉ♡ I'm a Telegram bot that can help with many things.\n\n` +
+    `◦ *Uptime:* %uptime\n` +
+    `◦ *Date:* %date\n` +
+    `◦ *Time:* %time WIB\n\n`;
 
   mainMenuText = mainMenuText
     .replace(/%name/g, m.name)
@@ -120,7 +125,7 @@ const handler = async (m, { conn, args }) => {
     .replace(/%date/g, date)
     .replace(/%time/g, time);
 
-  mainMenuText += '╭─『 *Kategori Perintah* 』\n';
+  mainMenuText += '╭─『 *Command Categories* 』\n';
 
   const arrayMenu = Object.keys(categoryNames);
 
@@ -132,7 +137,7 @@ const handler = async (m, { conn, args }) => {
       return indexA - indexB;
     })
     .forEach(category => {
-      const categoryDisplayName = categoryNames[category] || category.toUpperCase();
+      const categoryDisplayName = categoryNames[category] || `${category.toUpperCase()} (☆▽☆)`;
       mainMenuText += `│ ⌬ ${categoryDisplayName}\n`;
     });
 
@@ -141,13 +146,13 @@ const handler = async (m, { conn, args }) => {
   mainMenuText += `│ • Users: ${Object.keys(global.db.data.users).length}\n`;
   mainMenuText += `│ • Commands: ${totalLoadedCommands}\n`;
   mainMenuText += '└────────────࿐\n\n';
-  mainMenuText += '*Note:* Ketik */menu <kategori>* untuk detail perintah.\nContoh: */menu downloader*';
+  mainMenuText += '*Note:* Type */menu <category>* for detailed commands.\nExample: */menu downloader* (≧◡≦) ♡';
 
   await conn.sendMessage(m.chat, {
     image: { url: menuImage },
     caption: mainMenuText,
     parse_mode: 'Markdown'
-      }, { quoted: { message_id: m.id } })
+  }, { quoted: { message_id: m.id } })
 };
 
 handler.help = ["menu", "help"];

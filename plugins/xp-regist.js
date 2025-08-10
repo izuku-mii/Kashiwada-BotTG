@@ -3,42 +3,51 @@ import crypto from 'crypto'
 const handler = async (m, { conn, text, usedPrefix, command }) => {
   const user = global.db.data.users[m.sender]
 
-  if (user.registered) return m.reply(`Anda sudah terdaftar!\nIngin daftar ulang? ${usedPrefix}unreg <SERIAL NUMBER>`)
+  if (user.registered) {
+    return m.reply(`You are already registered! (≧▽≦)\nWant to re-register? Use: ${usedPrefix}unreg <SERIAL NUMBER>`)
+  }
 
-  if (!text)
+  if (!text) {
     return m.reply(
-      `Format salah!\n\nPenggunaan:\n${usedPrefix + command} <nama>.<umur>\n\nContoh: ${usedPrefix + command} budi.17`,
+      `Wrong format! (｡•́︿•̀｡)\n\nUsage:\n${usedPrefix + command} <name>.<age>\n\nExample: ${usedPrefix + command} Fenrys.20`
     )
+  }
 
-  const [nama, umur] = text.split(".")
-  if (!nama) return m.reply(`Nama tidak boleh kosong!`)
-  if (!umur) return m.reply(`Umur tidak boleh kosong!`)
-  if (isNaN(umur)) return m.reply(`Umur harus berupa angka!`)
-  if (umur < 5) return m.reply(`Umur minimal 5 tahun!`)
-  if (umur > 120) return m.reply(`Umur maksimal 120 tahun!`)
+  const [name, age] = text.split(".")
+  if (!name) return m.reply(`Name cannot be empty! (╥﹏╥)`)
+  if (!age) return m.reply(`Age cannot be empty! (╯︵╰,)`)
 
-  user.name = nama.trim()
-  user.age = Number.parseInt(umur)
+  const ageNum = parseInt(age, 10)
+  if (Number.isNaN(ageNum)) return m.reply(`Age must be a number! (°ロ°)`)
+  if (ageNum < 5) return m.reply(`Minimum age is 5 years old! (｀・ω・´)`)
+  if (ageNum > 120) return m.reply(`Maximum age is 120 years old! (⊙_☉)`)
+
+  user.name = name.trim()
+  user.age = ageNum
   user.registered = true
-  user.regTime = +new Date()
+  user.regTime = Date.now()
 
   const sn = crypto.createHash("md5").update(m.sender.toString()).digest("hex")
 
-  const caption = `
-┌─〔 INFO PENGGUNA 〕
-├ Nama: ${nama}
-├ Umur: ${umur} tahun
-├ SN: ${sn}
-└────
-
-Selamat! Anda berhasil terdaftar.
-Ketik */menu* untuk melihat daftar perintah.
-`.trim()
-
-  conn.reply(m.chat, caption, { message_id: m.id })
+  const caption = [
+    '┌─〔 🌸 USER INFO 🌸 〕',
+    `├ Name: ${name}`,
+    `├ Age: ${ageNum} years old`,
+    `├ SN: ${sn}`,
+    '└────',
+    '',
+    'Yay~! You are now successfully registered! (ﾉ´ヮ`)ﾉ*: ･ﾟ',
+    'Type */menu* to see all available commands ✧(＾▽＾)'
+  ].join('\n')
+y
+  try {
+    await conn.reply(m.chat, caption, m)
+  } catch {
+    await conn.sendMessage(m.chat, { text: caption }, { quoted: m })
+  }
 }
 
-handler.help = ["daftar <nama>.<umur>"]
+handler.help = ["register"]
 handler.tags = ["main"]
 handler.command = /^(daftar|register)$/i
 
