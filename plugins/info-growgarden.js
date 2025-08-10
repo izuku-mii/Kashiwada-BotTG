@@ -86,7 +86,7 @@ let handler = async (m) => {
 
 handler.help = ['growgarden']
 handler.command = ['growgarden', 'gag']
-handler.tags = ['internet']
+handler.tags = ['info']
 handler.limit = 1
 
 export default handler

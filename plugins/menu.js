@@ -51,8 +51,10 @@ await loadBotPlugins();
 
 const categoryNames = {
   main: "🎯 MAIN",
+  ai: "🤖 AI",
   tools: "⚙️ TOOLS",
   downloader: "💫 DOWNLOADER",
+  stalk: "🔍 STALK",
   // fun: "🎪 FUN",
   group: "👾 GROUP",
   owner: "👤 OWNER",

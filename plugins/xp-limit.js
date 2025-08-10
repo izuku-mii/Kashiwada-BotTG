@@ -40,7 +40,7 @@ let handler = async (m, { conn }) => {
 }
 
 handler.help = ['limit', 'checklimit', 'ceklimit']
-handler.tags = ['xp']
+handler.tags = ['main']
 handler.command = ['limit', 'checklimit', 'ceklimit']
 
 export default handler
