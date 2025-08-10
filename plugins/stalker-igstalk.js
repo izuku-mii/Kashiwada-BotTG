@@ -58,7 +58,7 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
   }
 };
 
-handler.help = ['igstalk <username>'];
+handler.help = ['igstalk'];
 handler.tags = ['stalk'];
 handler.command = /^(igstalk|instagramstalk|instastalk)$/i;
 

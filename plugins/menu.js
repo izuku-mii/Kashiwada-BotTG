@@ -71,7 +71,7 @@ const menuTemplate = {
 const handler = async (m, { conn, args }) => {
   const user = global.db.data.users[m.sender];
   const isOwner = global.ownerid.includes(m.sender.toString());
-  const isPrems = global.premid.includes(m.sender.toString()) || user.premium || user.premiumTime > 0;
+  const isPrems = global.premid.includes(m.sender.toString()) || user.premium || (user.premiumTime > Date.now());
 
   let d = new Date();
   let locale = 'id';

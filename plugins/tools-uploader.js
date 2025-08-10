@@ -55,7 +55,7 @@ let handler = async (m, { conn }) => {
   }
 };
 
-handler.help = ['tourl <reply image/video/audio>'];
+handler.help = ['tourl'];
 handler.tags = ['tools'];
 handler.command = /^(upload|tourl)$/i;
 

@@ -55,7 +55,7 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
   }
 };
 
-handler.help = ['twitterstalk <username>'];
+handler.help = ['twitterstalk'];
 handler.tags = ['stalk'];
 handler.command = /^(twitterstalk|twstalk|xstalk)$/i;
 

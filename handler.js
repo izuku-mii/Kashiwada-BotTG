@@ -32,6 +32,18 @@ export async function handler(m) {
     if (!m) return
 
     try {
+      // Cache username -> userId to resolve @mentions later
+      if (!global.usernameCache) global.usernameCache = {}
+      const baseMsg = m.fakeObj?.message
+      const fromUser = m.fakeObj?.from
+      if (fromUser?.username && fromUser?.id) {
+        global.usernameCache[String(fromUser.username).toLowerCase()] = fromUser.id
+      }
+      const repliedFrom = baseMsg?.reply_to_message?.from
+      if (repliedFrom?.username && repliedFrom?.id) {
+        global.usernameCache[String(repliedFrom.username).toLowerCase()] = repliedFrom.id
+      }
+
       m.exp = 0
       m.limit = false
 
@@ -58,7 +70,7 @@ export async function handler(m) {
         if (!isNumber(user.chat)) user.chat = 0
         if (!isNumber(user.chatTotal)) user.chatTotal = 0
         if (!isNumber(user.lastseen)) user.lastseen = 0
-        if (!("lastReset" in user)) user.lastReset = moment().tz("Asia/Makassar").format('YYYY-MM-DD')
+        if (!("lastReset" in user)) user.lastReset = moment().tz("Asia/Jakarta").format('YYYY-MM-DD')
       } else {
         global.db.data.users[m.sender] = {
           saldo: 0,
@@ -103,7 +115,7 @@ export async function handler(m) {
       const isOwner = isROwner || m.fromMe
       const isPrems = isROwner ||
         (global.premid && global.premid.length > 0 ? global.premid.includes(m.sender.toString()) : false) ||
-        global.db.data.users[m.sender].premiumTime > 0 ||
+        (global.db.data.users[m.sender].premiumTime > Date.now()) ||
         global.db.data.users[m.sender].premium
 
       try {
@@ -540,6 +552,22 @@ export async function participantsUpdate(ctx) {
       }
 
       if (!chatId || !userId || !eventType) return
+
+      // Update username cache when we can
+      try {
+        if (!global.usernameCache) global.usernameCache = {}
+        const userObj = ctx.myChatMember?.new_chat_member?.user || ctx.message?.left_chat_member || (ctx.message?.new_chat_members ? null : null)
+        if (userObj?.username && userObj?.id) {
+          global.usernameCache[String(userObj.username).toLowerCase()] = userObj.id
+        }
+        if (ctx.message && ctx.message.new_chat_members) {
+          for (const member of ctx.message.new_chat_members) {
+            if (member?.username && member?.id) {
+              global.usernameCache[String(member.username).toLowerCase()] = member.id
+            }
+          }
+        }
+      } catch {}
 
       const chat = global.db.data.chats[chatId] || {}
       if (!chat.welcome) return

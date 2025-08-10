@@ -57,7 +57,7 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
   }
 };
 
-handler.help = ['ttstalk <username>'];
+handler.help = ['ttstalk'];
 handler.tags = ['stalk'];
 handler.command = /^(ttstalk|tiktokstalk)$/i;
 

@@ -92,7 +92,7 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
   }
 };
 
-handler.help = ['ghstalk <username>'];
+handler.help = ['ghstalk'];
 handler.tags = ['stalk'];
 handler.command = /^(ghstalk|githubstalk)$/i;
 

@@ -3,7 +3,7 @@ import crypto from 'crypto'
 const handler = async (m, { conn }) => {
   const user = global.db.data.users[m.sender]
   const isOwner = global.ownerid.includes(m.sender.toString())
-  const isPrems = global.premid.includes(m.sender.toString()) || user.premium || user.premiumTime > 0
+  const isPrems = global.premid.includes(m.sender.toString()) || user.premium || (user.premiumTime > Date.now())
 
   if (!user.registered) return m.reply(`Anda belum terdaftar!\nKetik /daftar nama.umur untuk mendaftar`)
 
