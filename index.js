@@ -1,11 +1,10 @@
-import "./config.js";
-import cluster from 'cluster';
-import { spawn } from 'child_process';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
-import express from 'express';
-import { fileURLToPath } from 'url';
+import "./config.js"
+import { spawn } from 'child_process'
+import path from 'path'
+import fs from 'fs'
+import os from 'os'
+import express from 'express'
+import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -158,7 +157,8 @@ function start(file) {
   console.log(`💾 \x1b[33mTotal RAM: ${ramInGB.toFixed(2)} GB\x1b[0m`);
   const freeRamInGB = os.freemem() / (1024 * 1024 * 1024);
   console.log(`💽 \x1b[33mFree RAM: ${freeRamInGB.toFixed(2)} GB\x1b[0m`);
-  console.log('\x1b[33m%s\x1b[0m', `📃 Script by BETABOTZ`);
+  console.log('\x1b[33m%s\x1b[0m', `📃 ESM Script by Ryzumi Network`);
+  console.log('\x1b[33m%s\x1b[0m', `📃 Original Script by BETABOTZ`);
 
   setInterval(() => { }, 1000);
 }
