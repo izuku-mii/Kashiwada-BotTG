@@ -1,198 +1,127 @@
-# Telegram Bot with Telegraf
+# NaoESM-Telebot
 
-A powerful Telegram bot built with Telegraf framework featuring modular plugin system and database management.
+A modern Telegram bot built with Telegraf v4 (ESM), a modular plugin system, and a lightweight JSON database (LowDB). It includes hot‑reload for plugins and a tiny HTTP status endpoint.
 
-## 🚀 Getting Started
+## Highlights
 
-### Prerequisites
-- Node.js V20 or higher
-- NPM or Yarn
-- Basic knowledge of JavaScript
+- Node.js ESM + Telegraf v4
+- Modular plugins in `plugins/` with hot-reload
+- JSON database via bundled LowDB (no external DB)
+- Role/permission helpers (owner, admin, premium)
+- Daily command limit system (auto reset)
+- Small HTTP status server with auto port selection
 
-### Installation
-1. Clone this repository
-```bash
-git clone https://github.com/ERLANRAHMAT/telebot-wa.git
-cd telebot-wa
+## Getting Started
+
+### Requirements
+- Node.js v20+
+- A Telegram Bot Token from [@BotFather](https://t.me/BotFather)
+
+### Quick start
+1) Clone the repository
+```powershell
+git clone https://github.com/ShirokamiRyzen/NaoESM-Telebot.git
+cd NaoESM-Telebot
 ```
 
-2. Install dependencies
-```bash
+2) Install dependencies
+```powershell
 npm install
 ```
 
-3. Configure bot token
-- Get your bot token from [@BotFather](https://t.me/BotFather)
-  1. Start chat with BotFather
-  2. Send `/newbot`
-  3. Follow instructions to create bot
-  4. Copy the token provided
-- Edit `config.js` and paste your token:
-```javascript
-global.token = "YOUR_BOT_TOKEN"
-```
+3) Configure your bot
+- Copy `config.example.js` to `config.js`
+- Edit `config.js` and set at least:
+  - `global.token` with your BotFather token
+  - `global.ownername`, `global.ownerid` (comma/space separated or array)
 
-4. Start the bot
-```bash
+4) Run the bot
+```powershell
 npm start
 ```
 
-## 🔑 API Configuration
+On start you’ll see OS/RAM info, the HTTP status port, and the plugin summary. The status endpoint responds on `/` with a small JSON.
 
-### Available Plans & Pricing
+## Configuration
 
-| Plan     | Daily Limit | Duration | Price (IDR) |
-|----------|------------|----------|-------------|
-| Free     | 30         | Forever  | Free        |
-| Basic    | 3000       | 1 Month  | 3,000      |
-| Premium  | 5000       | 1 Month  | 5,000      |
-| VIP      | 8000       | 2 Months | 8,000      |
-| SUPREME  | 20000      | 4 Months | 20,000     |
+All settings live in `config.js` (see `config.example.js` for defaults).
 
-### Getting API Key
+- token: Telegram bot token string
+- ownername: Your display name
+- ownerid: Single ID or a list of owner IDs (string/array)
+- premid: Premium user IDs (optional)
+- botname: Public bot name used in messages
+- prefix: Array of prefixes, e.g. `['/','.', '#','!']`
+- wib: Time offset (hours) for some date/time helpers
+- message: Common error/guard messages
+- ports: List of ports the tiny HTTP server will try in order
+- limit: Default daily command limit per user
+- APIs / APIKeys: External API base URLs and keys, e.g. `ryzumi: https://api.ryzumi.vip`
 
-1. Register at [BetaBotz API](https://api.betabotz.eu.org)
-2. Choose your plan and click "Buy Now"
-3. After payment, you'll receive your API key
-4. Configure your API key in `config.js`:
+Security tips
+- Don’t commit secrets. Prefer editing `config.js` locally copied from `config.example.js`.
+- Rotate tokens/keys if they ever leak.
 
-```javascript
-global.APIs = {   
-  lann: 'https://api.betabotz.eu.org',
-}
-global.APIKeys = { 
-  'https://api.betabotz.eu.org': 'YOUR_API_KEY_HERE'
-}
-```
+## Database
 
-### Whitelist Your Bot IP
+- File: `database.json` (auto-created on first run)
+- Backend: LowDB JSON file (bundled under `lib/lowdb/`)
+- Auto-save interval: ~15s
+- Daily limit reset: handled internally for each user
 
-1. Start your bot
-2. Use command `/getip` to get your bot's IP
-3. Go to [API Profile](https://api.betabotz.eu.org/profile)
-4. Navigate to: Settings -> Management IP
-5. Add your bot's IP to whitelist
+Back up `database.json` regularly if you care about the data.
 
-### Node.js Requirements
+## Plugin System
 
-This bot requires Node.js v20 or higher. Recommended hosting options:
-- VPS with Node.js 20+
-- Managed Node.js hosting
-- Heroku with Node.js 20+ buildpack
+Plugins live in `plugins/` and are hot‑reloaded on change. A plugin can be a function export and may attach metadata used by the core handler.
 
-### Additional Information
-
-- API Documentation: [api.betabotz.eu.org/docs](https://api.betabotz.eu.org/docs)
-- Support Group: [Join Group](https://chat.whatsapp.com/H8XPKS8vmHm2spliGlKY41)
-- Updates Channel: [Join Channel](https://whatsapp.com/channel/0029VaiIG3UJpe8n3Y2MZ51z)
-
-## 📚 Plugin System
-
-### Plugin Structure
-Plugins are located in `plugins/` directory. Each plugin should follow this structure:
-
-```javascript
-const handler = async (m, { conn }) => {
-  // Plugin code here
-}
-
-handler.help = ['commandname']
-handler.tags = ['category']
-handler.command = /^(commandname)$/i
-
-module.exports = handler
-```
-
-### Available Categories
-- 🎯 Main - Basic commands
-- ⚙️ Tools - Utility tools
-- 💫 Downloader - Media downloaders
-- 🎪 Fun - Fun commands
-- 👾 Group - Group management
-- 👤 Owner - Owner only commands
-- 🛡️ Admin - Admin commands
-- ⭐ Premium - Premium user commands
-- 🎐 Info - Information commands
-- ⚡ Advanced - Advanced features
-
-### Creating a Plugin
-1. Create new .js file in plugins/
-2. Follow basic structure
-3. Define:
-   - handler function
-   - help array
-   - tags array
-   - command regex
-
-Example plugin:
-```javascript
-const handler = async (m, { conn }) => {
+Minimal plugin example
+```js
+// plugins/hello.js
+export default async function (m, { conn }) {
   await m.reply('Hello World!')
 }
 
-handler.help = ['hello']
-handler.tags = ['main']
-handler.command = /^(hello|hi)$/i
-
-module.exports = handler
+// Optional metadata used by the handler
+export const command = /^(hello|hi)$/i
+export const tags = ['main'] // for your own grouping/menus
 ```
 
-### Handler Parameters
-- `m` - Message context
-  - m.chat - Chat ID
-  - m.sender - Sender ID
-  - m.reply() - Reply to message
-  - m.quoted - Quoted message
+Supported fields (attach as named exports or properties on the default function):
+- command: string | RegExp | (string | RegExp)[] — matcher for the command (required to trigger)
+- customPrefix: string | RegExp | (string | RegExp)[] — override global prefixes
+- before(m, extras): optional pre-hook; return false to skip
+- after(m, extras): optional post-hook
+- exp: number — XP awarded (default 17)
+- limit: boolean | number — consume N limits (true = 1)
+- rowner, owner, premium, group, private, admin: booleans to guard command
 
-- `conn` - Bot connection object
-  - conn.sendMessage() - Send message
-  - conn.sendPhoto() - Send photo
-  - conn.sendDocument() - Send file
+Handler parameters
+- m: normalized message object with helpers like `m.reply(text)`
+- extras: `{ conn, args, text, command, usedPrefix, isOwner, isPrems, isAdmin, isBotAdmin, participants }`
 
-## 📋 Features
+Explore existing examples in `plugins/`.
 
-### Database System
-- Uses JSON file-based database
-- Stores user data and chat settings
-- Auto-saves changes
-- Limit system for commands
+## HTTP Status Endpoint
 
-### User Levels
-- Normal users
-- Premium users
-- Admin users
-- Owner access
+`index.js` starts a tiny Express server and auto-picks the first open port from `global.ports`. Hitting `/` returns a small JSON to verify the bot is alive.
 
-### Command Limits
-- Default: 30 commands per day
-- Premium: Unlimited
-- Auto reset daily
+## Troubleshooting
 
-## 🛠️ Configuration
+- “Telegraf library is not installed”: run `npm install` again.
+- Stuck on token error: ensure `global.token` in `config.js` is set and valid.
+- Node version: must be 20+. Check with `node -v`.
 
-Edit `config.js` to customize:
-- Bot name
-- Owner details
-- Command prefix
-- API keys
-- Message templates
-- Limit settings
+## Attribution
 
-## 📝 License
+This project is adapted and refactored for ESM and Telegraf v4 by ShirokamiRyzen.
 
-This project is licensed under the MIT License - see the LICENSE file for details
+Original author and repository (base work):
+- ERLANRAHMAT — https://github.com/ERLANRAHMAT/telebot-wa
 
-## 🤝 Contributing
+The codebase also references “Original Script by BETABOTZ” in logs. We extend thanks to the original authors and contributors.
 
-1. Fork the repo
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create pull request
+## License
 
-## ⚠️ Important Notes
+ISC License © ShirokamiRyzen
 
-- Keep your bot token secret
-- Don't share config.js with tokens
-- Regular backups recommended
-- Check Telegram bot API limits
