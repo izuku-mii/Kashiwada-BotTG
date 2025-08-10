@@ -31,7 +31,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   }
 
   try {
-    await m.reply(typeof wait !== 'undefined' ? wait : 'Please wait...');
+    await m.reply(wait);
 
     const url = args[0];
 
@@ -60,7 +60,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     if ((j1.type || '').toLowerCase() === 'image') {
       let first = true;
       for (const imgUrl of j1.media) {
-        const caption = first ? `Here’s the photo, ${uname} ~ ✨` : '';
+        const caption = first ? `Here's the photo, ${uname} ~ ✨` : '';
         first = false;
         await conn.sendMessage(
           m.chat,

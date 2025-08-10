@@ -41,7 +41,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 	}
 
 	try {
-		await m.reply(typeof wait !== 'undefined' ? wait : 'Please wait...');
+		await m.reply(wait);
 
 		const url = args[0];
 		const api = `${APIs.ryzumi}/api/downloader/spotify?url=${encodeURIComponent(url)}`;
@@ -64,7 +64,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 	const fileName = `${sanitizeSegment(title)}-${sanitizeSegment(artistsStr)}.mp3`;
 		const uname = getDisplayName(m, conn);
 		const captionParts = [
-			`Here’s your track, ${uname} ~ ✨`,
+			`Here's your track, ${uname} ~ ✨`,
 			`Title: ${title}`,
 			`Artists: ${artists}`,
 		];

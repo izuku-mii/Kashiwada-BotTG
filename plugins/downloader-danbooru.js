@@ -40,7 +40,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 	let fileUrl;
 
 	try {
-		await m.reply(typeof wait !== 'undefined' ? wait : 'Please wait...');
+		await m.reply(wait);
 
 		const url = args[0];
 		const api = `${APIs.ryzumi}/api/downloader/danbooru?url=${encodeURIComponent(url)}`;

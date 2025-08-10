@@ -26,6 +26,8 @@ let handler = async (m, { conn }) => {
 
     if (!fileId) throw 'No media found (つ﹏<)･ﾟ｡';
 
+    await m.reply(wait);
+
     // Get Telegram file link
     const fileLink = await conn.telegram.getFileLink(fileId);
 

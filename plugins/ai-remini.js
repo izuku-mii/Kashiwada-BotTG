@@ -14,6 +14,8 @@ async function handler(m, { conn, usedPrefix, command }) {
       return m.reply(`This feature works only for *photos*, nya~ 📷✨\nPlease reply to a photo or send one with caption *${usedPrefix + command}* (≧◡≦)`);
     }
 
+    await m.reply(wait);
+
     const fileId = photos[photos.length - 1]?.file_id;
     if (!fileId) return m.reply(`Hmm... that photo seems invalid (｡•́︿•̀｡)\nPlease try sending it again~`);
 
@@ -40,7 +42,7 @@ async function handler(m, { conn, usedPrefix, command }) {
     }
 
     const outBuf = Buffer.from(await apiRes.arrayBuffer());
-    await conn.sendFile(m.chat, outBuf, 'remini.png', `Here’s your enhanced photo~ ✨ (⁄ ⁄•⁄ω⁄•⁄ ⁄)`, m);
+    await conn.sendFile(m.chat, outBuf, 'remini.png', `Here's your enhanced photo~ ✨ (⁄ ⁄•⁄ω⁄•⁄ ⁄)`, m);
 
   } catch (e) {
     console.error(e);
@@ -49,7 +51,7 @@ async function handler(m, { conn, usedPrefix, command }) {
 }
 
 handler.help = ['remini'];
-handler.tags = ['tools'];
+handler.tags = ['ai'];
 handler.command = ['remini'];
 
 handler.register = true

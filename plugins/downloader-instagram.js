@@ -50,7 +50,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     for (const item of media) {
       const url = item.url;
       const t   = (item.type || '').toLowerCase(); // "image" | "video"
-      const caption = first ? `Here’s your media, ${uname} ~ ✨` : '';
+      const caption = first ? `Here's your media, ${uname} ~ ✨` : '';
       first = false;
 
       if (t === 'video') {

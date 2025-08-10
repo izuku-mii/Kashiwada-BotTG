@@ -49,7 +49,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   }
 
   try {
-    await m.reply(typeof wait !== 'undefined' ? wait : 'Please wait...');
+    await m.reply(wait);
 
     const url = args[0]
     const qualityNum = parseQuality(args[1])
@@ -72,7 +72,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     const uname = getDisplayName(m, conn)
 
     const captionParts = [
-      `Here’s your video, ${uname} ~ ✨`,
+      `Here's your video, ${uname} ~ ✨`,
       `Title: ${title}`,
     ]
     if (author) captionParts.push(`Author: ${author}`)

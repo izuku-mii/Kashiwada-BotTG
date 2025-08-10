@@ -41,7 +41,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   }
 
   try {
-    await m.reply(typeof wait !== 'undefined' ? wait : 'Please wait...');
+    await m.reply(wait);
 
     const url = args[0];
     const api = `${APIs.ryzumi}/api/downloader/ytmp3?url=${encodeURIComponent(url)}`;
@@ -62,7 +62,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     const uname = getDisplayName(m, conn);
 
     const captionParts = [
-      `Here’s your audio, ${uname} ~ ✨`,
+      `Here's your audio, ${uname} ~ ✨`,
       `Title: ${title}`,
     ];
     if (author) captionParts.push(`Author: ${author}`);
