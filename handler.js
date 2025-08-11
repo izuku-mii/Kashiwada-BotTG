@@ -11,8 +11,8 @@ function isRealError(error) {
 }
 
 async function rlimit() {
-  const now = moment().tz("Asia/Makassar")
-  const resetTime = moment().tz("Asia/Makassar").startOf('day')
+  const now = moment().tz("Asia/Jakarta")
+  const resetTime = moment().tz("Asia/Jakarta").startOf('day')
 
   if (now.isSameOrAfter(resetTime)) {
     for (const userId in global.db.data.users) {
@@ -87,7 +87,7 @@ export async function handler(m) {
           chat: 0,
           chatTotal: 0,
           lastseen: 0,
-          lastReset: moment().tz("Asia/Makassar").format('YYYY-MM-DD')
+          lastReset: moment().tz("Asia/Jakarta").format('YYYY-MM-DD')
         }
       }
 
@@ -597,9 +597,15 @@ export async function participantsUpdate(ctx) {
   }
 
 global.dfail = async (type, m, conn) => {
-  const msg = global.message;
-  [type]
-  if (msg) return await m.reply(msg)
+  try {
+    const map = global.message || {}
+    const text = (typeof type === 'string' && map[type]) ? map[type] : (map.error || 'An error occurred, please try again later.')
+
+    if (m?.reply) return await m.reply(text)
+    if (conn?.sendMessage && m?.chat) return await conn.sendMessage(m.chat, { text })
+  } catch (e) {
+    console.error('dfail error:', e)
+  }
 }
 
 fs.watchFile(new URL(import.meta.url), () => {
