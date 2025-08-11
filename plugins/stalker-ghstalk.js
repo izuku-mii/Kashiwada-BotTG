@@ -28,6 +28,7 @@ let handler = async (m, { text, usedPrefix, command, conn }) => {
   }
 
   try {
+    await m.reply(wait);
     const url = `${APIs.ryzumi}/api/stalk/github?username=${encodeURIComponent(text)}`;
     const res = await fetch(url, { headers: { accept: 'application/json' } });
     if (!res.ok) throw new Error(`Request failed (${res.status})`);
