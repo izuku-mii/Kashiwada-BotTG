@@ -10,6 +10,38 @@ const DEFAULT_WIDTH = 720
 const DEFAULT_HEIGHT = 1280
 const DEFAULT_ENHANCE = false
 
+function getDisplayName(m, conn) {
+  const from =
+    m.from ||
+    m.fakeObj?.message?.from ||
+    m.message?.from ||
+    m.quoted?.fakeObj?.message?.from ||
+    null;
+
+  if (from?.username) return `@${from.username}`;
+  if (from?.first_name && from?.last_name) return `${from.first_name} ${from.last_name}`;
+  if (from?.first_name) return from.first_name;
+
+  try {
+    const n = conn?.getName?.(m.sender);
+    if (n) return n;
+  } catch {}
+  return 'nya~';
+}
+
+function getUserMention(m, conn) {
+  const from =
+    m.from ||
+    m.fakeObj?.message?.from ||
+    m.message?.from ||
+    m.quoted?.fakeObj?.message?.from ||
+    null;
+  if (from?.username) return `@${from.username}`
+  // Escape markdown chars in display name
+  const name = getDisplayName(m, conn).replace(/([*_`\[\]()~>#+\-=|{}.!])/g, '\\$1')
+  return `[${name}](tg://user?id=${m.sender})`
+}
+
 async function generateImage({ prompt, model, width, height, enhance, useV2FallbackFirst = false }) {
   const base = APIs.ryzumi
   const buildUrl = (version) => {
@@ -83,11 +115,13 @@ async function handler(m, { conn, usedPrefix, command, text }) {
         { text: 'kontext+enh', callback_data: `t2i:${sessionId}:k1` }
       ]
     ]
+    const mention = getUserMention(m, conn)
     await conn.sendButt(
       m.chat,
-      `Choose a model & enhance option for the following prompt:\n\n"${prompt}"\n\nRow 1 = enhance OFF, Row 2 = enhance ON\n(timeout 10s)`,
+      `Hi ${mention}~ Choose a model & enhance option for the following prompt:\n\n"${prompt}"\n\nRow 1 = enhance OFF, Row 2 = enhance ON\n(timeout 10s)`,
       buttons,
-      m
+      m,
+      { parse_mode: 'Markdown' }
     )
     return
   } catch (e) {
@@ -126,11 +160,12 @@ handler.before = async function (m) {
         height: DEFAULT_HEIGHT,
         enhance
       })
+      const uname = getDisplayName(m, this)
       await this.sendFile(
         m.chat,
         buffer,
         'text2img.png',
-        `Done~ ✨\nModel: ${model}\nEnhance: ${enhance}\nPrompt: ${session.prompt}\nSource: ${url.includes('/v2/') ? 'v2 (fallback)' : 'v1'}`,
+        `Here you go, ${uname} ~ ✨\nModel: ${model}\nEnhance: ${enhance}\nPrompt: ${session.prompt}\nSource: ${url.includes('/v2/') ? 'v2 (fallback)' : 'v1'}`,
         m
       )
     } catch (e) {

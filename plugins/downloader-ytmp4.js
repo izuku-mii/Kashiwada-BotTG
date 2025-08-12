@@ -30,8 +30,20 @@ function getDisplayName(m, conn) {
   try {
     const n = conn?.getName?.(m.sender);
     if (n) return n;
-  } catch { }
+  } catch {}
   return 'nya~';
+}
+
+function getUserMention(m, conn) {
+  const from =
+    m.from ||
+    m.fakeObj?.message?.from ||
+    m.message?.from ||
+    m.quoted?.fakeObj?.message?.from ||
+    null;
+  if (from?.username) return `@${from.username}`
+  const name = getDisplayName(m, conn).replace(/([*_`\[\]()~>#+\-=|{}.!])/g, '\\$1')
+  return `[${name}](tg://user?id=${m.sender})`
 }
 
 function sanitizeTitle(name = '') {
@@ -73,7 +85,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
   const qualities = [144, 360, 480, 720, 1080, 2160]
   const row1 = qualities.slice(0, 3).map(q => ({ text: `${q}p`, callback_data: `ytv:${sessionId}:${q}` }))
   const row2 = qualities.slice(3).map(q => ({ text: `${q}p`, callback_data: `ytv:${sessionId}:${q}` }))
-  await conn.sendButt(m.chat, `Choose a video resolution (timeout 10s):\n${url}`, [row1, row2], m)
+  const mention = getUserMention(m, conn)
+  await conn.sendButt(m.chat, `Hi ${mention}~ Choose a video resolution (timeout 10s):\n${url}`, [row1, row2], m, { parse_mode: 'Markdown' })
 }
 
 async function downloadAndSend(m, conn, url, qualityNum) {
@@ -91,14 +104,14 @@ async function downloadAndSend(m, conn, url, qualityNum) {
     const thumb = json?.thumbnail || ''
     const qualityStr = json?.quality || `${qualityNum}p`
     const fileName = `${sanitizeTitle(title)}_${qualityStr}.mp4`
-    const uname = getDisplayName(m, conn)
-    const captionParts = [`Here’s your video, ${uname} ~ ✨`, `Title: ${title}`]
+  const uname = getDisplayName(m, conn)
+  const captionParts = [`Here’s your video, ${uname} ~ ✨`, `Title: ${title}`]
     if (author) captionParts.push(`Author: ${author}`)
     if (lengthSeconds) captionParts.push(`Duration: ${lengthSeconds}s`)
     if (qualityStr) captionParts.push(`Quality: ${qualityStr}`)
     const caption = captionParts.join('\n')
-    if (thumb) { try { await conn.sendMessage(m.chat, { image: { url: thumb }, caption }, { quoted: m }) } catch { } }
-    await conn.sendMessage(m.chat, { video: { url: videoDirectUrl }, mimetype: 'video/mp4', fileName, caption }, { quoted: m })
+  if (thumb) { try { await conn.sendMessage(m.chat, { image: { url: thumb }, caption }, { quoted: m }) } catch { } }
+  await conn.sendMessage(m.chat, { video: { url: videoDirectUrl }, mimetype: 'video/mp4', fileName, caption }, { quoted: m })
   } catch (err) {
     console.error('YTMP4 Download Error:', err)
     await conn.reply(m.chat, `An error occurred: ${err?.message || err}`, m)
