@@ -146,9 +146,11 @@ async function buildMessage(ctx) {
 	const msg = ctx.message || ctx.editedMessage || ctx.channelPost || ctx.editedChannelPost || {}
 	const chat = ctx.chat || msg.chat || {}
 	const from = ctx.from || msg.from || {}
+	// Support callback query data as synthetic text so plugins can parse it like a normal command
+	const cbData = ctx.callbackQuery?.data
 
 	const isGroup = chat.type === 'group' || chat.type === 'supergroup'
-	const text = msg.text || msg.caption || ''
+	const text = msg.text || msg.caption || cbData || ''
 
 	// IDs
 	const chatId = chat.id

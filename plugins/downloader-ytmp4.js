@@ -3,6 +3,18 @@
 
 import fetch from 'node-fetch'
 
+// Session store for pending quality selections
+if (!global.__ytmp4Sessions) global.__ytmp4Sessions = {}
+function newSessionId() {
+  return (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)).slice(0, 12)
+}
+function pruneYtSessions(maxAgeMs = 10 * 1000) { // 10s TTL
+  const now = Date.now()
+  for (const [id, s] of Object.entries(global.__ytmp4Sessions)) {
+    if (!s || (now - (s.created || 0)) > maxAgeMs) delete global.__ytmp4Sessions[id]
+  }
+}
+
 function getDisplayName(m, conn) {
   const from =
     m.from ||
@@ -18,7 +30,7 @@ function getDisplayName(m, conn) {
   try {
     const n = conn?.getName?.(m.sender);
     if (n) return n;
-  } catch {}
+  } catch { }
   return 'nya~';
 }
 
@@ -44,63 +56,75 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     return m.reply(
       `Usage:\n${usedPrefix + command} <youtube url> [quality]\n` +
       `Example: ${usedPrefix + command} https://youtu.be/Hy9s13hWsoc 720p\n` +
-      `Note: default quality is 720p when omitted.`
+      `If only a URL is sent, I’ll ask you to pick a resolution via buttons.`
     );
   }
 
+  const url = args[0]
+  // If user supplied quality explicitly -> direct download
+  if (args[1]) {
+    return downloadAndSend(m, conn, url, parseQuality(args[1]))
+  }
+
+  // Show buttons to pick resolution
+  pruneYtSessions()
+  const sessionId = newSessionId()
+  global.__ytmp4Sessions[sessionId] = { url, user: m.sender, created: Date.now() }
+  const qualities = [144, 360, 480, 720, 1080, 2160]
+  const row1 = qualities.slice(0, 3).map(q => ({ text: `${q}p`, callback_data: `ytv:${sessionId}:${q}` }))
+  const row2 = qualities.slice(3).map(q => ({ text: `${q}p`, callback_data: `ytv:${sessionId}:${q}` }))
+  await conn.sendButt(m.chat, `Choose a video resolution (timeout 10s):\n${url}`, [row1, row2], m)
+}
+
+async function downloadAndSend(m, conn, url, qualityNum) {
   try {
-    await m.reply(wait);
-
-    const url = args[0]
-    const qualityNum = parseQuality(args[1])
+    await m.reply(wait)
     const api = `${APIs.ryzumi}/api/downloader/ytmp4?url=${encodeURIComponent(url)}&quality=${qualityNum}`
-
     const res = await fetch(api, { headers: { accept: 'application/json' } })
     if (!res.ok) throw new Error(`API request failed (${res.status})`)
-
     const json = await res.json()
     const videoDirectUrl = json?.url
     if (!videoDirectUrl) throw new Error('Failed to fetch video URL')
-
     const title = json?.title || 'YouTube Video'
     const author = json?.author || ''
     const lengthSeconds = Number(json?.lengthSeconds || 0) || undefined
     const thumb = json?.thumbnail || ''
     const qualityStr = json?.quality || `${qualityNum}p`
-
     const fileName = `${sanitizeTitle(title)}_${qualityStr}.mp4`
     const uname = getDisplayName(m, conn)
-
-    const captionParts = [
-      `Here's your video, ${uname} ~ ✨`,
-      `Title: ${title}`,
-    ]
+    const captionParts = [`Here’s your video, ${uname} ~ ✨`, `Title: ${title}`]
     if (author) captionParts.push(`Author: ${author}`)
     if (lengthSeconds) captionParts.push(`Duration: ${lengthSeconds}s`)
     if (qualityStr) captionParts.push(`Quality: ${qualityStr}`)
     const caption = captionParts.join('\n')
-
-    // Optional preview
-    if (thumb) {
-      try {
-        await conn.sendMessage(m.chat, { image: { url: thumb }, caption }, { quoted: m })
-      } catch {}
-    }
-
-    await conn.sendMessage(
-      m.chat,
-      {
-        video: { url: videoDirectUrl },
-        mimetype: 'video/mp4',
-        fileName,
-        caption,
-      },
-      { quoted: m }
-    )
-
+    if (thumb) { try { await conn.sendMessage(m.chat, { image: { url: thumb }, caption }, { quoted: m }) } catch { } }
+    await conn.sendMessage(m.chat, { video: { url: videoDirectUrl }, mimetype: 'video/mp4', fileName, caption }, { quoted: m })
   } catch (err) {
     console.error('YTMP4 Download Error:', err)
     await conn.reply(m.chat, `An error occurred: ${err?.message || err}`, m)
+  }
+}
+
+// Before hook to intercept quality selection callback
+handler.before = async function (m) {
+  try {
+    if (!m.callbackQuery) return
+    if (!m.text || !/^ytv:/.test(m.text)) return
+    pruneYtSessions()
+    const parts = m.text.split(':')
+    if (parts.length !== 3) return
+    const sessionId = parts[1]
+    const quality = parseInt(parts[2], 10)
+    const session = global.__ytmp4Sessions[sessionId]
+    if (!session) {
+      await m.reply('Resolution selection session has expired. Please send the URL again.')
+      return false
+    }
+    delete global.__ytmp4Sessions[sessionId]
+    await downloadAndSend(m, this, session.url, parseQuality(quality))
+    return false
+  } catch (e) {
+    console.error('ytmp4 before hook error:', e)
   }
 }
 
