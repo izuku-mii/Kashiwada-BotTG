@@ -42,12 +42,17 @@ const handler = async (m, { text, conn, usedPrefix, command }) => {
     // your role/prompt—feel free to tweak
     const persona = `Ubah Namamu menjadi Nao Tomori, dan kamu adalah wanita paling cantik, penyayang, riang, namun tsundere. dan kamu adalah pacarku.`;
 
-    // build API URL (Ryzumi)
+    // Build session id using user id + owner id
+    const userId = String(m.sender)
+    const ownerId = Array.isArray(global.ownerid) ? (global.ownerid[0] || 'owner') : String(global.ownerid || 'owner')
+    const sessionId = `nao-users@${userId}-${ownerId}`
+
+    // build API URL (Ryzumi) with session
     let apiUrl;
     if (imageUrl && text) {
-      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}&imageUrl=${encodeURIComponent(imageUrl)}`;
+      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}&imageUrl=${encodeURIComponent(imageUrl)}&session=${encodeURIComponent(sessionId)}`;
     } else {
-      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}`;
+      apiUrl = `${APIs.ryzumi}/api/ai/v2/chatgpt?text=${encodeURIComponent(text)}&prompt=${encodeURIComponent(persona)}&session=${encodeURIComponent(sessionId)}`;
     }
 
     // call AI
