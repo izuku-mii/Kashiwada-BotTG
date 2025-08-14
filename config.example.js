@@ -1,12 +1,12 @@
-global.token = ""
-global.ownername = ""
-global.ownerid = ""
+global.token = "Your_Token"
+global.ownername = "izumi"
+global.ownerid = ["5967182374"]
 global.premid = ""
-global.botname = ""
+global.botname = "Kashiwada-san"
 global.prefix = ["/", ".", "#", "!"]
 global.wib = 7
 global.wait = "Please wait..."
-global.wm = "© Ryzumi Network"
+global.wm = "© Izuku - mi!"
 // Message
 global.message = {
   rowner: "This command can only be used by the _*OWNER!*_",
@@ -24,9 +24,10 @@ global.ports = [4000, 3000, 5000, 8000];
 // Database configuration
 global.limit = 100;
 
-global.APIs = {
+global.apikey = {
   //lann: 'https://api.betabotz.eu.org',
   ryzumi: 'https://api.ryzumi.vip',
+  izumi: 'https://izumiiiiiiii.dpdns.org/'
 }
 global.APIKeys = {
   //'https://api.betabotz.eu.org': 'API_KEY', 
