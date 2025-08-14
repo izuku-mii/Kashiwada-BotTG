@@ -4,6 +4,7 @@ global.ownerid = ["5967182374"]
 global.premid = ""
 global.botname = "Kashiwada-san"
 global.prefix = ["/", ".", "#", "!"]
+global.thumbnail = "https://files.cloudkuimages.guru/images/0vJcLfEA.jpg"
 global.wib = 7
 global.wait = "Please wait..."
 global.wm = "© Izuku - mi!"
