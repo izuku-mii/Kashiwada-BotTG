@@ -18,7 +18,7 @@ function safeCodeBlock(content) {
 
 const tmpDir = './.eval-tmp'
 
-export default async function handler(m, _2) {
+let handler = async (m, _2) => {
   const { conn, noPrefix } = _2
   let _return = null
   let _syntax = ''
@@ -71,3 +71,6 @@ handler.help = ['> ', '=> ']
 handler.tags = ['advanced']
 handler.customPrefix = /^=?> /
 handler.command = /(?:)/i
+handler.rowner = true;
+
+export default handler
