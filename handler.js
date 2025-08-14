@@ -111,7 +111,7 @@ export async function handler(m) {
         }
       }
 
-      const isROwner = global.ownerid && global.ownerid.length > 0 ? global.ownerid.includes(m.sender.toString()) : false
+      const isROwner = global.ownerid.includes(m.sender)
       const isOwner = isROwner || m.fromMe
       const isPrems = isROwner ||
         (global.premid && global.premid.length > 0 ? global.premid.includes(m.sender.toString()) : false) ||
