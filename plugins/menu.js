@@ -100,7 +100,7 @@ const handler = async (m, { conn, args }) => {
       categoryMenuText += '\n*Note:* Back to the main menu with */menu* (o^▽^o)';
 
       return conn.sendMessage(m.chat, {
-        image: { url: config.thumbnail },
+        image: { url: global.thumbnail },
         caption: categoryMenuText,
         parse_mode: 'Markdown'
       }, { quoted: { message_id: m.id } })
@@ -113,7 +113,7 @@ const handler = async (m, { conn, args }) => {
   }
 
   let mainMenuText =
-    `*${global.config.name}*\n\n` +
+    `*${global.name}*\n\n` +
     `Hi %name! (｡•‿•｡)ﾉ♡ I'm a Telegram bot that can help with many things.\n\n` +
     `◦ *Uptime:* %uptime\n` +
     `◦ *Date:* %date\n` +
@@ -149,7 +149,7 @@ const handler = async (m, { conn, args }) => {
   mainMenuText += '*Note:* Type */menu <category>* for detailed commands.\nExample: */menu downloader* (≧◡≦) ♡';
 
   await conn.sendMessage(m.chat, {
-    image: { url: config.thumbnail },
+    image: { url: global.thumbnail },
     caption: mainMenuText,
     parse_mode: 'Markdown'
   }, { quoted: { message_id: m.id } })
