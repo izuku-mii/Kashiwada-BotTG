@@ -113,7 +113,7 @@ const handler = async (m, { conn, args }) => {
   }
 
   let mainMenuText =
-    `*${global.name}*\n\n` +
+    `*${global.botname}*\n\n` +
     `Hi %name! (｡•‿•｡)ﾉ♡ I'm a Telegram bot that can help with many things.\n\n` +
     `◦ *Uptime:* %uptime\n` +
     `◦ *Date:* %date\n` +
