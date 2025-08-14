@@ -3,7 +3,7 @@ const handler = async (m, { conn, text }) => {
   await conn.sendMessage(m.chat, { text: userId }, { quoted: { message_id: m.id } })
 }
 
-handler.command = /^(id)$/i
+handler.command = /^(id|getid)$/i
 handler.help = ['id', 'getid']
 handler.tags = ['info']
 handler.private = false
