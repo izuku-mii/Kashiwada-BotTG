@@ -6,7 +6,7 @@ let izumi = async (m, {
 }) => {
     if (!text.includes('tiktok')) return m.reply('⚠️ Masukan Link Tiktok !')
     try {
-        const response = await fetch('https://izumiiiiiiii.dpdns.org/downloader/tiktok?url=' + text);
+        const response = await fetch(apikey.izumi + '/downloader/tiktok?url=' + text);
         const {
             result
         } = await response.json();
