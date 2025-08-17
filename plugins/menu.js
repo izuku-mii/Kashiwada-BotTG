@@ -1,23 +1,23 @@
 import fs from "fs"
 import path from "path"
-import { pathToFileURL, fileURLToPath } from "url"
+import { fileURLToPath, pathToFileURL } from "url"
 
-// Recreate __filename/__dirname in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-let loadedCategories = {};
-let totalLoadedCommands = 0;
+let loadedCategories = {}
+let totalLoadedCommands = 0
 
+// Loader plugins
 const loadBotPlugins = async () => {
-  const pluginDir = path.join(__dirname);
-  const plugins = [];
-  const categories = {};
-  let totalCommands = 0;
+  const pluginDir = path.join(__dirname)
+  const plugins = []
+  const categories = {}
+  let totalCommands = 0
 
   const files = fs.readdirSync(pluginDir)
   for (const file of files) {
-    if (file.endsWith('.js') && file !== 'menu.js') {
+    if (file.endsWith(".js") && file !== "menu.js") {
       try {
         const full = path.join(pluginDir, file)
         const mod = await import(pathToFileURL(full).href + `?v=${Date.now()}`)
@@ -29,141 +29,177 @@ const loadBotPlugins = async () => {
     }
   }
 
+  // Susun kategori & command
   plugins.forEach((plugin) => {
-    if (plugin.tags && plugin.help) {
-      plugin.tags.forEach((tag) => {
-        if (!categories[tag]) categories[tag] = [];
-        plugin.help.forEach((help) => {
-          if (!categories[tag].includes(help)) {
-            categories[tag].push(help);
-            totalCommands++;
-          }
-        });
-      });
-    }
-  });
+    plugin.tags.forEach((tag) => {
+      if (!categories[tag]) categories[tag] = []
+      plugin.help.forEach((cmd) => {
+        if (!categories[tag].includes(cmd)) {
+          categories[tag].push(cmd)
+          totalCommands++
+        }
+      })
+    })
+  })
 
-  loadedCategories = categories;
-  totalLoadedCommands = totalCommands;
-};
+  loadedCategories = categories
+  totalLoadedCommands = totalCommands
+}
 
-await loadBotPlugins();
+await loadBotPlugins()
 
-const categoryNames = {
-  main: "🎯 MAIN",
-  ai: "🤖 AI",
-  tools: "⚙️ TOOLS",
-  downloader: "💫 DOWNLOADER",
-  stalk: "🔍 STALK",
-  // fun: "🎪 FUN",
-  group: "👾 GROUP",
-  owner: "👤 OWNER",
-  admin: "🛡️ ADMIN",
-  premium: "⭐ PREMIUM",
-  info: "🎐 INFO",
-  advanced: "⚡ ADVANCED",
-};
+// default caption
+const caption = `Hi %name, I am %botname and I was created by %ownername. Even though I'm a bit of a beginner, don't criticize me. I also make anime content or something like that if the owner is bored.`
 
-const menuTemplate = {
-  header: '╭─『 %category 』',
-  body: '│ ⌬ %cmd %islimit %ispremium',
-  footer: '╰────────࿐\n',
-};
+const caption2 = `\`\`\`INFO
+ *∆* Name: %name
+ *∆* Limit: %limit
+ *∆* Uptime: %uptime
+ *∆* Time: %time
+ *∆* Date: %date
+\`\`\``
 
-const handler = async (m, { conn, args }) => {
-  const user = global.db.data.users[m.sender];
-  const isOwner = global.ownerid.includes(m.sender.toString());
-  const isPrems = global.premid.includes(m.sender.toString()) || user.premium || (user.premiumTime > Date.now());
+const caption3 = `bot %botname, created by ©%ownername`
 
-  let d = new Date();
-  let locale = 'en';
-  let date = d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
-  let time = d.toLocaleTimeString(locale, { hour: 'numeric', minute: 'numeric' });
-  let uptime = clockString(process.uptime() * 1000);
+const handler = async (m, { conn, args = [], usedPrefix, command }) => {
+ try {
+  const d = new Date()
+  const locale = "id-ID"
+  const date = d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })
+  const time = d.toLocaleTimeString(locale, { hour: "numeric", minute: "numeric" })
+  const uptime = clockString(process.uptime() * 1000)
+  const limit = global.db?.data?.users?.[m.sender]?.limit || 0
 
-  if (args[0]) {
-    const categoryArg = args[0].toLowerCase();
-    const foundCategory = Object.keys(loadedCategories).find(cat => cat.toLowerCase() === categoryArg);
+  if (!args[0]) {
+    let text = caption
+      .replace(/%name/g, m.name)
+      .replace(/%botname/g, global.botname)
+      .replace(/%ownername/g, global.ownername)
 
-    if (foundCategory) {
-      const categoryDisplayName = categoryNames[foundCategory] || `${foundCategory.toUpperCase()} (✿^‿^)`;
-      let categoryMenuText = menuTemplate.header.replace(/%category/g, categoryDisplayName) + '\n';
+    text += "\n\n" + caption2
+      .replace(/%name/g, m.name)
+      .replace(/%uptime/g, uptime)
+      .replace(/%time/g, time)
+      .replace(/%date/g, date)
+      .replace(/%limit/g, limit)
 
-      loadedCategories[foundCategory].forEach(cmd => {
-        categoryMenuText += menuTemplate.body
-          .replace(/%cmd/g, cmd)
-          .replace(/%islimit/g, '')
-          .replace(/%ispremium/g, '') + '\n';
-      });
-
-      categoryMenuText += menuTemplate.footer;
-      categoryMenuText += '\n*Note:* Back to the main menu with */menu* (o^▽^o)';
-
-      return conn.sendMessage(m.chat, {
-        image: { url: global.thumbnail },
-        caption: categoryMenuText,
-        parse_mode: 'Markdown'
-      }, { quoted: { message_id: m.id } })
-    } else {
-      return conn.sendMessage(m.chat, {
-        text: `Category *"${args[0]}"* not found (｡•́︿•̀｡)\n\nType */menu* to see available categories.`,
-        parse_mode: 'Markdown'
-      }, { quoted: { message_id: m.id } })
-    }
+    text += `\nIf you want to go to the all/list menu: *${usedPrefix + command} all*, *${usedPrefix + command} list*\n`
+    text += "\n" + caption3
+      .replace(/%botname/g, global.botname)
+      .replace(/%ownername/g, global.ownername)
+        
+    await conn.telegram.sendPhoto(m.chat, global.thumbnail, { caption: Styles(text), parse_mode: 'Markdown', reply_markup: { inline_keyboard: [ [{ text: 'AllMenu', callback_data: `/menu all` }, { text: 'Website', url: global.apikey.izumi }, { text: 'Script Bot Tele', callback_data: `/script` } ] ] }, reply_to_message_id: m.id } );
+    return
   }
 
-  let mainMenuText =
-    `*${global.botname}*\n\n` +
-    `Hi %name! (｡•‿•｡)ﾉ♡ I'm a Telegram bot that can help with many things.\n\n` +
-    `◦ *Uptime:* %uptime\n` +
-    `◦ *Date:* %date\n` +
-    `◦ *Time:* %time WIB\n\n`;
+  if (args[0] === "list") {
+    const categoriesList = Object.keys(loadedCategories).map(cat => {
+      return `- *${cat}* (${loadedCategories[cat].length} cmds)`
+    }).join("\n")
+    
+    let text = caption
+      .replace(/%name/g, m.name)
+      .replace(/%botname/g, global.botname)
+      .replace(/%ownername/g, global.ownername)
 
-  mainMenuText = mainMenuText
-    .replace(/%name/g, m.name)
-    .replace(/%uptime/g, uptime)
-    .replace(/%date/g, date)
-    .replace(/%time/g, time);
+    text += `☘️ *Available Categories:*\n\n${categoriesList}\n\n📌 Total Commands: ${totalLoadedCommands}`
+    text += "\n" + caption3
+      .replace(/%botname/g, global.botname)
+      .replace(/%ownername/g, global.ownername)
 
-  mainMenuText += '╭─『 *Command Categories* 』\n';
+    await conn.sendMessage(m.chat, { image: { url: global.thumbnail }, caption: text }, { quoted: { message_id: m.id } });
+    return
+  }
 
-  const arrayMenu = Object.keys(categoryNames);
+if (args[0] === "all") {
+  // fungsi escape untuk MarkdownV2
+  const escapeMarkdown = (text) =>
+    text.replace(/([_*[\]()~`>#+\-=|{}.!])/g, "\\$1")
 
-  Object.keys(loadedCategories)
-    .sort((a, b) => {
-      const indexA = arrayMenu.indexOf(a);
-      const indexB = arrayMenu.indexOf(b);
-      if (indexA === -1 || indexB === -1) return 0;
-      return indexA - indexB;
-    })
-    .forEach(category => {
-      const categoryDisplayName = categoryNames[category] || `${category.toUpperCase()} (☆▽☆)`;
-      mainMenuText += `│ ⌬ ${categoryDisplayName}\n`;
-    });
+  const allCmds = Object.keys(loadedCategories).map(cat => {
+    return `📂 *${escapeMarkdown(cat)}*\n${loadedCategories[cat].map(c => `- ${escapeMarkdown(c)}`).join("\n")}`
+  }).join("\n\n")
+  
+  let text = `☘️ *Commands \\(${totalLoadedCommands}\\)*\n\n${allCmds}`
 
-  mainMenuText += '╰─────────────࿐\n\n';
-  mainMenuText += '┌───『 *Statistics* 』───࿐\n';
-  mainMenuText += `│ • Users: ${Object.keys(global.db.data.users).length}\n`;
-  mainMenuText += `│ • Commands: ${totalLoadedCommands}\n`;
-  mainMenuText += '└────────────࿐\n\n';
-  mainMenuText += '*Note:* Type */menu <category>* for detailed commands.\nExample: */menu downloader* (≧◡≦) ♡';
+  // kalau panjang > 4096, split biar aman
+  const chunks = text.match(/[\s\S]{1,3500}/g) || []
+  for (let i = 0; i < chunks.length; i++) {
+    await conn.sendMessage(
+      m.chat,
+      { 
+        image: { url: global.thumbnail },
+        caption: chunks[i],
+        parse_mode: "MarkdownV2" 
+      },
+      { quoted: { message_id: m.id } }
+    )
+  }
+  return
+}
 
-  await conn.sendMessage(m.chat, {
-    image: { url: global.thumbnail },
-    caption: mainMenuText,
-    parse_mode: 'Markdown'
-  }, { quoted: { message_id: m.id } })
-};
+  const category = args[0].toLowerCase()
+  if (loadedCategories[category]) {
+    const cmds = loadedCategories[category].map(cmd => `- ${cmd}`).join("\n")
 
-handler.help = ["menu", "start", "help"];
-handler.tags = ["main"];
-handler.command = /^(menu|start|help|\?)$/i;
+    let text = caption
+      .replace(/%name/g, m.name)
+      .replace(/%botname/g, global.botname)
+      .replace(/%ownername/g, global.ownername)
+
+    text += "\n\n" + caption2
+      .replace(/%name/g, m.name)
+      .replace(/%uptime/g, uptime)
+      .replace(/%time/g, time)
+      .replace(/%date/g, date)
+      .replace(/%limit/g, limit)
+
+    text += `☘️ *Category:* ${category}\n\n${cmds}`
+    text += "\n" + caption3
+      .replace(/%botname/g, global.botname)
+      .replace(/%ownername/g, global.ownername)
+      
+    await conn.sendMessage(m.chat, { image: { url: global.thumbnail }, caption: text }, { quoted: { message_id: m.id } });
+    return
+  }
+
+  await conn.sendMessage(m.chat, { text: "⚠️ Kategori tidak ditemukan!" }, { quoted: m })
+  } catch (e) {
+    m.reply(' ❌Error')
+    console.error(e)
+  }
+}
+
+handler.help = ["start", "menu"]
+handler.tags = ["main"]
+handler.command = /^(start|menu)$/i
 
 function clockString(ms) {
-  let h = Math.floor(ms / 3600000);
-  let m = Math.floor(ms / 60000) % 60;
-  let s = Math.floor(ms / 1000) % 60;
-  return [h, m, s].map(v => v.toString().padStart(2, 0)).join(':');
+  let h = Math.floor(ms / 3600000)
+  let m = Math.floor(ms / 60000) % 60
+  let s = Math.floor(ms / 1000) % 60
+  return [h, m, s].map(v => v.toString().padStart(2, 0)).join(":")
+}
+
+function Styles(text, style = 1) {
+    var xStr = "abcdefghijklmnopqrstuvwxyz1234567890".split("");
+    var yStr = Object.freeze({
+      1: "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘqʀꜱᴛᴜᴠᴡxʏᴢ1234567890",
+    });
+    var replacer = [];
+    xStr.map((v, i) =>
+      replacer.push({
+        original: v,
+        convert: yStr[style].split("")[i],
+      }),
+    );
+    var str = text.toLowerCase().split("");
+    var output = [];
+    str.map((v) => {
+      const find = replacer.find((x) => x.original == v);
+      find ? output.push(find.convert) : output.push(v);
+    });
+    return output.join("");
 }
 
 export default handler
