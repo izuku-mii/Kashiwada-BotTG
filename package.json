@@ -18,7 +18,7 @@
     "javascript",
     "bot",
     "izumi"
-  ,
+  },
   "author": "Izumi",
   "license": "ISC",
   "dependencies": {
