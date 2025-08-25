@@ -8,7 +8,7 @@
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": 
+  "keywords": [
     "telegram",
     "telegram-bot",
     "lightweight",
@@ -18,7 +18,7 @@
     "javascript",
     "bot",
     "izumi"
-  },
+  ],
   "author": "Izumi",
   "license": "ISC",
   "dependencies": {
