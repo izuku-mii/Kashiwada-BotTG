@@ -1,11 +1,12 @@
 import axios from 'axios'
-import { uploadPermanent } from 'cloudku-uploader'
+import up from '../lib/uploader.js'
 
 let izumi = async (m, { conn }) => {
     let quoted = m.fakeObj.message.reply_to_message ? m.fakeObj.message.reply_to_message : m.fakeObj.message;
 
-    if (!(quoted?.photo || quoted?.document || quoted?.video || quoted?.audio || quoted?.voice)) {
-        return m.reply('⚠️Masukan Media (photo/document/video/audio/voice) Buat Di Upload');
+    const mediaTypes = ['photo', 'document', 'video', 'audio', 'voice']
+    if (mediaTypes.every(type => !quoted[type])) {
+       return m.reply('⚠️ Masukan Media (photo/document/video/audio/voice) Buat Di Upload')
     };
 
     let fileId
@@ -26,28 +27,23 @@ let izumi = async (m, { conn }) => {
     try {
         const { file_path } = await conn.telegram.getFile(fileId);
 
-        const url = `https://api.telegram.org/file/bot${token}/${file_path}`;
+        const url = 'https://api.telegram.org/file/bot' + token + '/' + file_path;
         const response = await axios.get(url, {
             responseType: 'arraybuffer'
         });
+        
+        const bel   = (await up.abel(response.data).catch(() => ''))   || '';
+        const cat   = (await up.catbox(response.data).catch(() => '')) || '';
+        const ypnk  = (await up.ypnk(response.data).catch(() => ''))   || '';
 
-        const { data: to } = await uploadPermanent(response.data);
-        let cap = `╭───「 ⬆️ Uploader Media 」───
-│  📁 Filename: ${to.filename || 'Null'}
-│  🗄️ Size: ${to.size || 'Null'}
-│  🔗 Url: ${to.url || 'Null'}
-╰───────────────────────`;
+        let cap = '╭───「 ⬆️ Uploader Media 」───\n' +
+          '│  🔗 Url-1: ' + (bel || '') + '\n' +
+          '│  🔗 Url-2: ' + (cat || '') + '\n' +
+          '│  🔗 Url-3: ' + (ypnk || '') + '\n' +
+          '╰───────────────────────'
 
         await conn.telegram.sendMessage(m.chat, cap, {
             parse_mode: 'Markdown',
-            reply_markup: {
-                inline_keyboard: [
-                    [{
-                        text: '🔗 Web Uploader',
-                        url: 'https://cloudkuimages.guru'
-                    }]
-                ]
-            },
             reply_to_message_id: m.id
         });
     } catch (e) {
