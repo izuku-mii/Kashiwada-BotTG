@@ -25,6 +25,7 @@
     "axios": "^1.10.0",
     "chalk": "^3.0.0",
     "cloudku-uploader": "latest",
+    "canvafy": "latest",
     "didyoumean": "^1.2.2",
     "discord.js": "^14.21.0",
     "express": "^5.1.0",
