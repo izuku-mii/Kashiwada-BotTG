@@ -5,7 +5,7 @@ import canvafy from 'canvafy';
 let Izumi = async (m, { conn, text }) => {
     if (!text) return m.reply(' ⚠️ Masukan Nama Lagu Nya Sek')
     try {
-        const { result: splay } = await (await fetch('https://izumiiiiiiii.dpdns.org/downloader/spotifyplay?q=' + text)).json()
+        const { result: splay } = await (await fetch(apikey.izumi + '/downloader/spotifyplay?query=' + text)).json()
 
         const spotify = await new canvafy.Spotify()
             .setAuthor(splay.artists)
