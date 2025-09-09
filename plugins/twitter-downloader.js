@@ -3,7 +3,7 @@ let Izumi = async (m, { conn, text }) => {
     try {
         const tw = await (
             await fetch(
-                'https://izumiiiiiiii.dpdns.org/downloader/twitter?url=' + encodeURIComponent(text)
+                apikey.izumi + '/downloader/twitter?url=' + encodeURIComponent(text)
             )
         ).json();
 
