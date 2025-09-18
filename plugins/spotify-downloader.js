@@ -23,7 +23,7 @@ let izumi = async (m, { conn, text }) => {
       )
 
     } else {
-      const { result } = await (await fetch(global.apikey.izumi + '/search/spotify?q=' + encodeURIComponent(text))).json()
+      const { result } = await (await fetch(global.apikey.izumi + '/search/spotify?query=' + encodeURIComponent(text))).json()
       let pick = result.sort(() => 0.5 - Math.random()).slice(0, 5)
       
       let caption = `╭───「 🔍 *Spotify Search* 」───\n│\n`
