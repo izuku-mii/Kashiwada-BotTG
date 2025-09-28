@@ -1,3 +1,5 @@
+// Uploader: https://github.com/izuku-mii/Kashiwada-base-tele/blob/main/lib/uploader.js
+
 import axios from 'axios'
 import up from '../lib/uploader.js'
 
