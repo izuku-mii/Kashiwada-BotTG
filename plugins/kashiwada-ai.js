@@ -1,3 +1,5 @@
+// Uploader: https://github.com/izuku-mii/Kashiwada-base-tele/blob/main/lib/uploader.js
+
 import upload from '../lib/uploader.js'
 import axios from "axios";
 
@@ -30,7 +32,7 @@ let o7ta = async (m, {
             }).toString();
         }
 
-        const url = 'https://izumiiiiiiii.dpdns.org/character/kashiwada-san?' + query;
+        const url = apikey.izumi + '/character/kashiwada-san?' + query;
 
         const params = {
             method: "GET",
