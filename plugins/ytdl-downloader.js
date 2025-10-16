@@ -17,7 +17,7 @@ let Izumi = async (m, {
                     url: link,
                     format: f
                 });
-                let resp = await (await fetch('https://izumiiiiiiii.dpdns.org/downloader/youtube?' + params)).json()
+                let resp = await (await fetch(apikey + '/downloader/youtube?' + params)).json()
 
                 const yt = resp.result;
                 let ytcap = ' ------- ( DOWNLOADER - YOUTUBE ) -------\n'
