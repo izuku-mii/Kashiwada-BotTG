@@ -28,7 +28,7 @@ global.limit = 100;
 global.apikey = {
   //lann: 'https://api.betabotz.eu.org',
   ryzumi: 'https://api.ryzumi.vip',
-  izumi: 'https://ootaizumi.qzz.io'
+  izumi: 'https://api.ootaizumi.web.id'
 }
 global.APIKeys = {
   //'https://api.betabotz.eu.org': 'API_KEY',
