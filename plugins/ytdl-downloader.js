@@ -17,7 +17,7 @@ let Izumi = async (m, {
                     url: link,
                     format: f
                 });
-                let resp = await (await fetch(apikey + '/downloader/youtube?' + params)).json()
+                let resp = await (await fetch(apikey.izumi + '/downloader/youtube?' + params)).json()
 
                 const yt = resp.result;
                 let ytcap = ' ------- ( DOWNLOADER - YOUTUBE ) -------\n'
@@ -71,7 +71,7 @@ let Izumi = async (m, {
                     url: text,
                     format: 'mp3'
                 });
-                let resp = await (await fetch(apikey + '/downloader/youtube?' + params)).json()
+                let resp = await (await fetch(apikey.izumi + '/downloader/youtube?' + params)).json()
 
                 const yt = resp.result;
                 let ytcap = ' ------- ( DOWNLOADER - YOUTUBE ) -------\n'
